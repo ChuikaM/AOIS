@@ -1,0 +1,309 @@
+#include <app.hpp>
+
+#include <menu.hpp>
+#include <settabcommand.hpp>
+#include <actioncommand.hpp>
+#include <ftxui/component/screen_interactive.hpp>
+
+#include <hashtable.hpp>
+#include <txttable.hpp>
+
+App::App()
+{
+    txtTable = std::make_unique<TxtTable>();
+    hashTable = std::make_unique<HashTable>();
+}
+App::~App() = default;
+
+void App::Run()
+{
+    auto screen = ftxui::ScreenInteractive::TerminalOutput();
+    
+    std::vector<std::pair<std::string, std::unique_ptr<ICommand>>> mainMenuOptions;
+    mainMenuOptions.emplace_back("Работа с таблицей", std::make_unique<SetTabCommand>(m_current_tab, 1));
+    mainMenuOptions.emplace_back("Работа с хэш-таблицей", std::make_unique<SetTabCommand>(m_current_tab, 2));
+    mainMenuOptions.emplace_back("Выход", std::make_unique<ActionCommand>([&screen]{screen.ExitLoopClosure()();}));
+    Menu mainMenu(std::move(mainMenuOptions));
+    auto menu1 = mainMenu.CreateMenu();
+
+    std::vector<std::pair<std::string, std::unique_ptr<ICommand>>> tableMenuOptions;
+    tableMenuOptions.emplace_back("Назад", std::make_unique<SetTabCommand>(m_current_tab, 0));
+    tableMenuOptions.emplace_back("Вывести таблицу", std::make_unique<SetTabCommand>(m_current_tab, 3));
+    tableMenuOptions.emplace_back("Добавление", std::make_unique<SetTabCommand>(m_current_tab, 4));
+    tableMenuOptions.emplace_back("Редактирование", std::make_unique<SetTabCommand>(m_current_tab, 5));
+    tableMenuOptions.emplace_back("Удаление", std::make_unique<SetTabCommand>(m_current_tab, 6));
+    tableMenuOptions.emplace_back("Поиск", std::make_unique<SetTabCommand>(m_current_tab, 7));
+    Menu tableMenu(std::move(tableMenuOptions));
+    auto menu2 = tableMenu.CreateMenu();
+
+    std::vector<std::pair<std::string, std::unique_ptr<ICommand>>> hashTableMenuOptions;
+    hashTableMenuOptions.emplace_back("Назад", std::make_unique<SetTabCommand>(m_current_tab, 0));
+    hashTableMenuOptions.emplace_back("Вывести таблицу", std::make_unique<SetTabCommand>(m_current_tab, 8));
+    hashTableMenuOptions.emplace_back("Добавление", std::make_unique<SetTabCommand>(m_current_tab, 9));
+    hashTableMenuOptions.emplace_back("Редактирование", std::make_unique<SetTabCommand>(m_current_tab, 10));
+    hashTableMenuOptions.emplace_back("Удаление", std::make_unique<SetTabCommand>(m_current_tab, 11));
+    hashTableMenuOptions.emplace_back("Поиск", std::make_unique<SetTabCommand>(m_current_tab, 12));
+    hashTableMenuOptions.emplace_back("Коллизии", std::make_unique<SetTabCommand>(m_current_tab, 13));
+    Menu hashTableMenu(std::move(hashTableMenuOptions));
+    auto menu3 = hashTableMenu.CreateMenu();
+
+    auto tabs = ftxui::Container::Tab({
+        menu1, menu2, menu3, 
+        ModalSimpleTablePrint(), ModalSimpleTableAdd(), ModalSimpleTableEdit(), ModalSimpleTableDelete(), ModalSimpleTableFind(),
+        ModalHashTablePrint(), ModalHashTableAdd(), ModalHashTableEdit(), ModalHashTableDelete(), ModalHashTableFind(), ModalHashTableCollisions()
+    }, &m_current_tab);
+
+    std::vector<std::string> titles {
+        "Главное меню", "Работа с таблицей", "Работа с хэш-таблицей", 
+        "Вывод таблицы", "Добавление в таблицу", "Редактирование таблицы", "Удаление в таблице", "Поиск в таблице",
+        "Вывод хэш-таблицы", "Добавление в хэш-таблицу", "Редактирование хэш-таблицы", "Удаление в хэш-таблице", "Поиск в хэш-таблице", "Коллизии"
+    };
+    auto renderer = ftxui::Renderer(tabs, [&] {
+        return ftxui::vbox({
+            ftxui::text(titles[m_current_tab]) | ftxui::bold | ftxui::center,
+            ftxui::separator(),
+            tabs->Render() | ftxui::vscroll_indicator | ftxui::frame,
+            ftxui::separator(),
+            ftxui::text(m_current_tab == 0 ? "Enter: Выбор" : "Enter: Выбор | Esc: Назад") | ftxui::dim | ftxui::center,
+        }) | ftxui::border;
+    });
+
+    renderer |= ftxui::CatchEvent([&](ftxui::Event e) {
+        if (e == ftxui::Event::Escape) {
+            if(m_current_tab == 1 || m_current_tab == 2)
+            {
+                m_current_tab = 0;
+                return true;
+            }
+            else if(m_current_tab > 2 && m_current_tab < 8)
+            {
+                m_current_tab = 1;
+                return true;
+            }
+            else if(m_current_tab >= 8)
+            {
+                m_current_tab = 2;
+                return true;
+            }
+        }
+        if (e == ftxui::Event::CtrlC) {
+            screen.ExitLoopClosure()();
+            return true;
+        }
+        return false;
+    });
+
+    screen.Loop(renderer);
+}
+
+ftxui::Component App::ModalSimpleTablePrint()
+{
+    txtTable->Load();
+    auto data = txtTable->GetTableData();
+    using namespace ftxui;
+
+    size_t max_width = 0;
+    for (size_t i = 0; i < 3 && i < data[0].size(); ++i) {
+        max_width = std::max(max_width, data[0][i].size());
+    }
+    max_width += 2;
+
+    std::vector<std::vector<Component>> buttons;
+    for (auto& row : data) {
+        std::vector<Component> row_buttons;
+        for (auto& label : row) {
+            row_buttons.push_back(
+                Button(label, []{}) | size(WIDTH, EQUAL, max_width)
+            );
+        }
+        buttons.push_back(row_buttons);
+    }
+
+    auto container = Container::Vertical({});
+    for (auto& row : buttons) {
+        container->Add(Container::Horizontal(row));
+    }
+    return container;
+}
+ftxui::Component App::ModalSimpleTableAdd()
+{
+    txtTable->Load();
+    std::vector<std::string> titles = txtTable->GetTitles();
+    m_titles_content.resize(titles.size());
+    
+    std::vector<ftxui::Component> inputs;
+    for(size_t i = 0; i < titles.size(); i++)
+    {
+        inputs.push_back(
+            ftxui::Container::Horizontal({
+                ftxui::Renderer([title = titles[i]] { 
+                    return ftxui::text(title + ": "); 
+                }),
+                ftxui::Input(&m_titles_content[i], titles[i])
+            })
+        );
+    }
+    inputs.push_back(ftxui::Button("Добавить", []{}));
+
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalSimpleTableEdit()
+{
+    txtTable->Load();
+    m_dropdown_titles = txtTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Найти", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalSimpleTableDelete()
+{
+    txtTable->Load();
+    m_dropdown_titles = txtTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Удалить", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalSimpleTableFind()
+{
+    txtTable->Load();
+    m_dropdown_titles = txtTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Найти", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+
+
+ftxui::Component App::ModalHashTablePrint()
+{
+    hashTable->Load();
+    auto data = hashTable->GetTableData();
+    using namespace ftxui;
+    size_t max_width = 0;
+    for (size_t i = 0; i < 3 && i < data[0].size(); ++i) {
+        max_width = std::max(max_width, data[0][i].size());
+    }
+    max_width += 2;
+
+    std::vector<std::vector<Component>> buttons;
+    for (auto& row : data) {
+        std::vector<Component> row_buttons;
+        for (auto& label : row) {
+            row_buttons.push_back(
+                Button(label, []{}) | size(WIDTH, EQUAL, max_width)
+            );
+        }
+        buttons.push_back(row_buttons);
+    }
+
+    auto container = Container::Vertical({});
+    for (auto& row : buttons) {
+        container->Add(Container::Horizontal(row));
+    }
+    return container;
+}
+ftxui::Component App::ModalHashTableAdd()
+{
+    hashTable->Load();
+    std::vector<std::string> titles = hashTable->GetTitles();
+    m_titles_content.resize(titles.size());
+    
+    std::vector<ftxui::Component> inputs;
+    for(size_t i = 0; i < titles.size(); i++)
+    {
+        inputs.push_back(
+            ftxui::Container::Horizontal({
+                ftxui::Renderer([title = titles[i]] { 
+                    return ftxui::text(title + ": "); 
+                }),
+                ftxui::Input(&m_titles_content[i], titles[i])
+            })
+        );
+    }
+    inputs.push_back(ftxui::Button("Добавить", []{}));
+
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalHashTableEdit()
+{
+    hashTable->Load();
+    m_dropdown_titles = hashTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Найти", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalHashTableDelete()
+{
+    hashTable->Load();
+    m_dropdown_titles = hashTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Удалить", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalHashTableFind()
+{
+    hashTable->Load();
+    m_dropdown_titles = hashTable->GetTitles();
+    m_dropdown_selected = 0;
+    
+    std::vector<ftxui::Component> inputs;
+    inputs.push_back(ftxui::Container::Horizontal({
+        ftxui::Renderer([]{
+            return ftxui::text("Поле: ") | ftxui::vcenter; 
+        }),
+        ftxui::Dropdown(&m_dropdown_titles, &m_dropdown_selected),
+        ftxui::Input(&m_content, "write...") | ftxui::vcenter
+    }));
+    inputs.push_back(ftxui::Button("Найти", []{}));
+    return ftxui::Container::Vertical(std::move(inputs));
+}
+ftxui::Component App::ModalHashTableCollisions()
+{
+    return ftxui::Renderer([] {
+        return ftxui::text("Коллизии таблицы (заглушка)") | ftxui::center;
+    });
+}
