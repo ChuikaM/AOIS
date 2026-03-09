@@ -8,12 +8,12 @@ public:
     explicit TxtTable(const std::string& filepath = "./file/file.csv");
     ~TxtTable() override = default;
     
-    void Modify(const table::Cell& cell) override;
-    void Add() override;
-    void Delete() override;
-    void Find() override;
+    bool Modify(const std::string& key, const std::string& newF2, const std::string& newF3) override;
+    bool Add(const Record& rec) override;
+    bool Delete(const std::string& key) override;
+    int Find(const std::string& key) override;
 
 private:
-    std::map<std::string, std::vector<std::string>> m_table_data;
+    std::vector<Record> m_data;
     
 };

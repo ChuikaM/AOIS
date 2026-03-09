@@ -3,20 +3,16 @@
 #include <filesystem>
 #include <map>
 
-namespace table
-{
-    struct Cell
-    {
-        int column;
-        int row;
-    };
+struct Record {
+    std::string key;
+    std::string field2;
+    std::string field3;
+    bool isEmpty;
+    bool isDeleted;
+    bool viaCollision;
 
-    struct Record
-    {
-        std::map<std::string, std::string> data;
-    };
-
-}
+    Record() : isEmpty(true), isDeleted(false), viaCollision(false) {}
+};
 
 class ITable
 {
@@ -24,11 +20,11 @@ public:
     virtual ~ITable() = default;
 
     virtual void Load(const std::string& filePath) = 0;
-    virtual void Modify(const table::Cell& cell) = 0;
-    virtual void Add() = 0;
-    virtual void Delete() = 0;
-    virtual void Find() = 0;
+    virtual bool Modify(const std::string& key, const std::string& newF2, const std::string& newF3) = 0;
+    virtual bool Add(const Record& rec) = 0;
+    virtual bool Delete(const std::string& key) = 0;
+    virtual int Find(const std::string& key) = 0;
 
-    virtual std::vector<std::vector<std::string>> GetTableData() const = 0;
+    virtual std::vector<Record> GetTableData() const = 0;
 
 };

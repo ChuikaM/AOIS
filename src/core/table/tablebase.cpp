@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 
 void TableBase::Load(const std::string& filepath) 
 {   
-    if (!fs::exists(filepath)) {
+   if (!fs::exists(filepath)) {
         throw std::runtime_error("File not found: " + filepath);
     }
     
@@ -24,7 +24,7 @@ void TableBase::Load(const std::string& filepath)
     std::string line;
     int lineNum = 0;
     bool titlesLoaded = false;
-    
+
     while (std::getline(file, line)) {
         ++lineNum;
     
@@ -49,7 +49,15 @@ void TableBase::Load(const std::string& filepath)
             m_titles = fields;
             titlesLoaded = true;
         } else {
-            m_table_data.push_back(std::move(fields));
+            // Create Record from CSV fields
+            Record rec;
+            rec.key = fields[0];
+            rec.field2 = fields[1];
+            rec.field3 = fields[2];
+            rec.isEmpty = false;
+            rec.isDeleted = false;
+            rec.viaCollision = false;
+            m_table_data.push_back(std::move(rec));
         }
     }
 }
@@ -78,4 +86,13 @@ std::vector<std::string> TableBase::parseCSVLine(const std::string& line)
     }
     fields.push_back(field);
     return fields;
+}
+
+std::vector<Record> TableBase::GetTableData() const
+{
+    return m_table_data;
+}
+std::vector<std::string> TableBase::GetTitles() const
+{
+    return m_titles;
 }

@@ -103,27 +103,26 @@ ftxui::Component App::ModalSimpleTablePrint()
     using namespace ftxui;
 
     size_t max_width = 0;
-    for (size_t i = 0; i < 3 && i < data[0].size(); ++i) {
-        max_width = std::max(max_width, data[0][i].size());
+    for (const auto& record : data) {
+        if (record.isEmpty) continue; 
+
+        max_width = std::max(max_width, record.key.size());
+        max_width = std::max(max_width, record.field2.size());
+        max_width = std::max(max_width, record.field3.size());
     }
     max_width += 2;
 
-    std::vector<std::vector<Component>> buttons;
-    for (auto& row : data) {
-        std::vector<Component> row_buttons;
-        for (auto& label : row) {
-            row_buttons.push_back(
-                Button(label, []{}) | size(WIDTH, EQUAL, max_width)
-            );
-        }
-        buttons.push_back(row_buttons);
+    std::vector<Component> rows;
+    for (const auto& record : data) {
+        if (record.isEmpty) continue;
+        auto row = Container::Horizontal({
+            Button(record.key, []{}) | size(WIDTH, EQUAL, max_width),
+            Button(record.field2, []{}) | size(WIDTH, EQUAL, max_width),
+            Button(record.field3, []{}) | size(WIDTH, EQUAL, max_width)
+        });
+        rows.push_back(row);
     }
-
-    auto container = Container::Vertical({});
-    for (auto& row : buttons) {
-        container->Add(Container::Horizontal(row));
-    }
-    return container;
+    return Container::Vertical(rows);
 }
 ftxui::Component App::ModalSimpleTableAdd()
 {
@@ -203,30 +202,30 @@ ftxui::Component App::ModalSimpleTableFind()
 ftxui::Component App::ModalHashTablePrint()
 {
     hashTable->Load();
-    auto data = hashTable->GetTableData();
+    auto data = txtTable->GetTableData();
     using namespace ftxui;
+
     size_t max_width = 0;
-    for (size_t i = 0; i < 3 && i < data[0].size(); ++i) {
-        max_width = std::max(max_width, data[0][i].size());
+    for (const auto& record : data) {
+        if (record.isEmpty) continue; 
+
+        max_width = std::max(max_width, record.key.size());
+        max_width = std::max(max_width, record.field2.size());
+        max_width = std::max(max_width, record.field3.size());
     }
     max_width += 2;
 
-    std::vector<std::vector<Component>> buttons;
-    for (auto& row : data) {
-        std::vector<Component> row_buttons;
-        for (auto& label : row) {
-            row_buttons.push_back(
-                Button(label, []{}) | size(WIDTH, EQUAL, max_width)
-            );
-        }
-        buttons.push_back(row_buttons);
+    std::vector<Component> rows;
+    for (const auto& record : data) {
+        if (record.isEmpty) continue;
+        auto row = Container::Horizontal({
+            Button(record.key, []{}) | size(WIDTH, EQUAL, max_width),
+            Button(record.field2, []{}) | size(WIDTH, EQUAL, max_width),
+            Button(record.field3, []{}) | size(WIDTH, EQUAL, max_width)
+        });
+        rows.push_back(row);
     }
-
-    auto container = Container::Vertical({});
-    for (auto& row : buttons) {
-        container->Add(Container::Horizontal(row));
-    }
-    return container;
+    return Container::Vertical(rows);
 }
 ftxui::Component App::ModalHashTableAdd()
 {
