@@ -38,4 +38,6 @@ private:
     int m_dropdown_selected {};
     std::string m_content;
 
+    bool m_row_added {};
+
 };

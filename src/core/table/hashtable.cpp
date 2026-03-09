@@ -87,9 +87,9 @@ int HashTable::Find(const std::string& key)
     return -1;
 }
 
-void HashTable::Collisions()
+int HashTable::Collisions() const
 { 
-
+    return m_totalCollisions;
 }
 
 int HashTable::hashFunction(const std::string& key)

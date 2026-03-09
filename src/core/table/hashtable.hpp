@@ -5,14 +5,14 @@
 class HashTable : public TableBase
 {
 public:
-    explicit HashTable(const std::string& filepath = "./file/file.csv");
+    explicit HashTable(const std::string& filepath = "./files/file.csv");
     ~HashTable() override = default;
     
     bool Modify(const std::string& key, const std::string& newF2, const std::string& newF3) override;
     bool Add(const Record& rec) override;
     bool Delete(const std::string& key) override;
     int Find(const std::string& key) override;
-    void Collisions();
+    int Collisions() const;
 
 private:
     int hashFunction(const std::string& key);

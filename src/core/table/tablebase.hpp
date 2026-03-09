@@ -6,7 +6,7 @@ class TableBase : private ITable
 public:
     ~TableBase() override = default;
 
-    void Load(const std::string& filepath = "./file/file.csv") override;
+    void Load(const std::string& filepath = "./files/file.csv") override;
 
     std::vector<Record> GetTableData() const override;
     std::vector<std::string> GetTitles() const;

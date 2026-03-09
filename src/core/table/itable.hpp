@@ -7,11 +7,9 @@ struct Record {
     std::string key;
     std::string field2;
     std::string field3;
-    bool isEmpty;
-    bool isDeleted;
-    bool viaCollision;
-
-    Record() : isEmpty(true), isDeleted(false), viaCollision(false) {}
+    bool isEmpty = false;
+    bool isDeleted = false;
+    bool viaCollision = false;
 };
 
 class ITable

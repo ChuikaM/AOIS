@@ -45,3 +45,8 @@ int TxtTable::Find(const std::string& key)
     }
     return -1;
 }
+
+std::vector<Record> TxtTable::GetData() const
+{
+    return m_data;
+}

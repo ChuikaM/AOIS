@@ -98,8 +98,7 @@ void App::Run()
 
 ftxui::Component App::ModalSimpleTablePrint()
 {
-    txtTable->Load();
-    auto data = txtTable->GetTableData();
+    auto data = txtTable->GetData();
     using namespace ftxui;
 
     size_t max_width = 0;
@@ -126,7 +125,6 @@ ftxui::Component App::ModalSimpleTablePrint()
 }
 ftxui::Component App::ModalSimpleTableAdd()
 {
-    txtTable->Load();
     std::vector<std::string> titles = txtTable->GetTitles();
     m_titles_content.resize(titles.size());
     
@@ -142,13 +140,19 @@ ftxui::Component App::ModalSimpleTableAdd()
             })
         );
     }
-    inputs.push_back(ftxui::Button("Добавить", []{}));
+    inputs.push_back(ftxui::Button("Добавить", [this]{
+        if(m_titles_content[0].empty() || m_titles_content[1].empty() || m_titles_content[2].empty()) 
+            return;
+        m_row_added = txtTable->Add({ m_titles_content[0], m_titles_content[1], m_titles_content[2]});
+    }));
+    inputs.push_back(ftxui::Renderer([this]{
+        return ftxui::text(m_row_added ? "Данные успешно добавлены." : "Не удалось добавить данные в таблицу!");
+    }));
 
     return ftxui::Container::Vertical(std::move(inputs));
 }
 ftxui::Component App::ModalSimpleTableEdit()
 {
-    txtTable->Load();
     m_dropdown_titles = txtTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -165,7 +169,6 @@ ftxui::Component App::ModalSimpleTableEdit()
 }
 ftxui::Component App::ModalSimpleTableDelete()
 {
-    txtTable->Load();
     m_dropdown_titles = txtTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -182,7 +185,6 @@ ftxui::Component App::ModalSimpleTableDelete()
 }
 ftxui::Component App::ModalSimpleTableFind()
 {
-    txtTable->Load();
     m_dropdown_titles = txtTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -201,7 +203,6 @@ ftxui::Component App::ModalSimpleTableFind()
 
 ftxui::Component App::ModalHashTablePrint()
 {
-    hashTable->Load();
     auto data = txtTable->GetTableData();
     using namespace ftxui;
 
@@ -229,7 +230,6 @@ ftxui::Component App::ModalHashTablePrint()
 }
 ftxui::Component App::ModalHashTableAdd()
 {
-    hashTable->Load();
     std::vector<std::string> titles = hashTable->GetTitles();
     m_titles_content.resize(titles.size());
     
@@ -251,7 +251,6 @@ ftxui::Component App::ModalHashTableAdd()
 }
 ftxui::Component App::ModalHashTableEdit()
 {
-    hashTable->Load();
     m_dropdown_titles = hashTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -268,7 +267,6 @@ ftxui::Component App::ModalHashTableEdit()
 }
 ftxui::Component App::ModalHashTableDelete()
 {
-    hashTable->Load();
     m_dropdown_titles = hashTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -285,7 +283,6 @@ ftxui::Component App::ModalHashTableDelete()
 }
 ftxui::Component App::ModalHashTableFind()
 {
-    hashTable->Load();
     m_dropdown_titles = hashTable->GetTitles();
     m_dropdown_selected = 0;
     
@@ -302,7 +299,8 @@ ftxui::Component App::ModalHashTableFind()
 }
 ftxui::Component App::ModalHashTableCollisions()
 {
-    return ftxui::Renderer([] {
-        return ftxui::text("Коллизии таблицы (заглушка)") | ftxui::center;
+    auto count = hashTable->Collisions();
+    return ftxui::Renderer([count] {
+        return ftxui::text("Коллизии таблицы:}"), ftxui::text(std::to_string(count));
     });
 }
