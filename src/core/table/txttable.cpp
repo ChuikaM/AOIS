@@ -6,12 +6,15 @@ TxtTable::TxtTable(const std::string& filepath)
     m_data = GetTableData();
 }
 
-bool TxtTable::Modify(const std::string& key, const std::string& newF2, const std::string& newF3)
+bool TxtTable::Modify(std::vector<std::string> fieldsNew)
 {
-    int idx = Find(key);
-    if (idx != -1) {
-        m_data[idx].field2 = newF2;
-        m_data[idx].field3 = newF3;
+    auto key = fieldsNew[0];
+    int index = Find(key);
+    if (index != -1) {
+        for(size_t i = 0; i < fieldsNew.size(); i++)
+        {
+            m_data[index].fields[i] = fieldsNew[i];
+        }
         return true;  // Запись обновлена
     }
     return false;  // Запись не найдена
@@ -20,7 +23,9 @@ bool TxtTable::Modify(const std::string& key, const std::string& newF2, const st
 bool TxtTable::Add(const Record& rec)
 {
     for (const auto& r : m_data) {
-        if (r.key == rec.key) {
+        auto keyLeft = r.fields[0];
+        auto keyRight = rec.fields[0];
+        if (keyLeft == keyRight) {
             return false; // Ошибка: Ключ уже существует
         }
     }
@@ -41,7 +46,8 @@ bool TxtTable::Delete(const std::string& key)
 int TxtTable::Find(const std::string& key)
 {
     for (size_t i = 0; i < m_data.size(); ++i) {
-        if (m_data[i].key == key) return i;
+        auto keyLeft = m_data[i].fields[0];
+        if (keyLeft == key) return i;
     }
     return -1;
 }

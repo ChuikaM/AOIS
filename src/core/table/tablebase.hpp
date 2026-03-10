@@ -1,7 +1,7 @@
 #pragma once
 #include <itable.hpp>
 
-class TableBase : private ITable
+class TableBase : public ITable
 {
 public:
     ~TableBase() override = default;
@@ -9,6 +9,8 @@ public:
     void Load(const std::string& filepath = "./files/file.csv") override;
 
     std::vector<Record> GetTableData() const override;
+    virtual std::vector<Record> GetData() const = 0;
+    Record GetDataAt(int index) const;
     std::vector<std::string> GetTitles() const;
 
 private:

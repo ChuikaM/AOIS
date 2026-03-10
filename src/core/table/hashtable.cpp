@@ -6,12 +6,15 @@ HashTable::HashTable(const std::string& filepath)
     m_data = GetTableData();
 }
 
-bool HashTable::Modify(const std::string& key, const std::string& newF2, const std::string& newF3)
+bool HashTable::Modify(std::vector<std::string> fieldsNew)
 {
+    auto key = fieldsNew[0];
     int index = Find(key);
     if (index != -1) {
-        m_data[index].field2 = newF2;
-        m_data[index].field3 = newF3;
+        for(size_t i = 0; i < fieldsNew.size(); i++)
+        {
+            m_data[index].fields[i] = fieldsNew[i];
+        }
         return true; // Запись успешно обновлена
     }
     return false; // Запись не найдена
@@ -23,14 +26,17 @@ bool HashTable::Add(const Record& rec)
         return false; // Ошибка: Хэш-таблица переполнена
     }
 
-    int index = hashFunction(rec.key);
+    auto key = rec.fields[0];
+    int index = hashFunction(key);
     int startIdx = index;
     int probes = 0;
     bool collisionOccurred = false;
 
     // Линейное зондирование
     while (!m_data[index].isEmpty && !m_data[index].isDeleted) {
-        if (m_data[index].key == rec.key) {
+        auto keyLeft = m_data[index].fields[0];
+        auto keyRight = rec.fields[0];
+        if (keyLeft == keyRight) {
             return false; // Ошибка: Ключ '" << rec.key << "' уже существует
         }
         index = (index + 1) % N;
@@ -65,7 +71,7 @@ bool HashTable::Delete(const std::string& key)
     if (index != -1) {
         m_data[index].isDeleted = true;
         // Ключ очищаем для безопасности, но флаг isEmpty остается false
-        m_data[index].key = ""; 
+        m_data[index].fields[0] = ""; 
         m_count--;
         return true; // Запись успешно удалена
     }
@@ -78,7 +84,8 @@ int HashTable::Find(const std::string& key)
     int startIdx = index;
 
     while (!m_data[index].isEmpty) {
-        if (!m_data[index].isDeleted && m_data[index].key == key) {
+        auto keyLeft = m_data[index].fields[0];
+        if (!m_data[index].isDeleted && keyLeft == key) {
             return index;
         }
         index = (index + 1) % N;
@@ -90,6 +97,11 @@ int HashTable::Find(const std::string& key)
 int HashTable::Collisions() const
 { 
     return m_totalCollisions;
+}
+
+std::vector<Record> HashTable::GetData() const
+{
+    return m_data;
 }
 
 int HashTable::hashFunction(const std::string& key)

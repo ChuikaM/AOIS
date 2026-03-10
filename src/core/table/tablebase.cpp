@@ -7,9 +7,17 @@
 
 namespace fs = std::filesystem;
 
+static std::string trim(const std::string& str) {
+    const char* whitespace = " \t\r\n";
+    auto start = str.find_first_not_of(whitespace);
+    if (start == std::string::npos) return "";
+    auto end = str.find_last_not_of(whitespace);
+    return str.substr(start, end - start + 1);
+}
+
 void TableBase::Load(const std::string& filepath) 
 {   
-   if (!fs::exists(filepath)) {
+    if (!fs::exists(filepath)) {
         throw std::runtime_error("File not found: " + filepath);
     }
     
@@ -28,15 +36,22 @@ void TableBase::Load(const std::string& filepath)
     while (std::getline(file, line)) {
         ++lineNum;
     
-        if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos) {
+        if (trim(line).empty()) {
             continue;
         }
     
+        // Убираем \r для совместимости с Windows
         if (!line.empty() && line.back() == '\r') {
             line.pop_back();
         }
         
         std::vector<std::string> fields = parseCSVLine(line);
+        
+        // Trim каждого поля после парсинга
+        for (auto& field : fields) {
+            field = trim(field);
+        }
+        
         if (fields.size() != 3) {
             throw std::runtime_error(
                 "Line " + std::to_string(lineNum) + 
@@ -46,14 +61,14 @@ void TableBase::Load(const std::string& filepath)
         }
         
         if (!titlesLoaded) {
-            m_titles = fields;
+            m_titles = fields; // Заголовки тоже триммируем
             titlesLoaded = true;
         } else {
-            // Create Record from CSV fields
             Record rec;
-            rec.key = fields[0];
-            rec.field2 = fields[1];
-            rec.field3 = fields[2];
+            for(const auto& field : fields)
+            {
+                rec.fields.push_back(field);
+            }
             rec.isEmpty = false;
             rec.isDeleted = false;
             rec.viaCollision = false;
@@ -61,6 +76,7 @@ void TableBase::Load(const std::string& filepath)
         }
     }
 }
+
 std::vector<std::string> TableBase::parseCSVLine(const std::string& line) 
 {
     std::vector<std::string> fields;
@@ -71,9 +87,10 @@ std::vector<std::string> TableBase::parseCSVLine(const std::string& line)
         char c = line[i];
         
         if (c == '"') {
+            // Обработка экранированных кавычек: "" внутри кавычек
             if (inQuotes && i + 1 < line.size() && line[i + 1] == '"') {
                 field += '"';
-                ++i;
+                ++i; // пропускаем следующую кавычку
             } else {
                 inQuotes = !inQuotes;
             }
@@ -84,13 +101,17 @@ std::vector<std::string> TableBase::parseCSVLine(const std::string& line)
             field += c;
         }
     }
-    fields.push_back(field);
+    fields.push_back(field); // добавляем последнее поле
     return fields;
 }
 
 std::vector<Record> TableBase::GetTableData() const
 {
     return m_table_data;
+}
+Record TableBase::GetDataAt(int index) const
+{
+    return m_table_data[index];
 }
 std::vector<std::string> TableBase::GetTitles() const
 {

@@ -3,3 +3,4 @@ project(core LANGUAGES CXX)
 
 add_subdirectory(table)
 add_subdirectory(command)
+add_subdirectory(factory)

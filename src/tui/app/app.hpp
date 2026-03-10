@@ -4,6 +4,7 @@
 
 class HashTable;
 class TxtTable;
+class Record;
 
 class App
 {
@@ -16,7 +17,6 @@ public:
 private:
     ftxui::Component ModalSimpleTablePrint();
     ftxui::Component ModalSimpleTableAdd();
-    const ftxui::Component &NewFunction();
     ftxui::Component ModalSimpleTableEdit();
     ftxui::Component ModalSimpleTableDelete();
     ftxui::Component ModalSimpleTableFind();
@@ -39,5 +39,11 @@ private:
     std::string m_content;
 
     bool m_row_added {};
+    bool m_modified {};
+    bool m_deleted {};
+    int m_index {};
+    std::unique_ptr<Record> m_record;
+
+
 
 };
