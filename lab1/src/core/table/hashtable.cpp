@@ -23,36 +23,36 @@ bool HashTable::Modify(std::vector<std::string> fieldsNew)
 bool HashTable::Add(const Record& rec)
 {
     if (m_count >= N) {
-        return false; // Ошибка: Хэш-таблица переполнена
+        return false; // Таблица переполнена
     }
 
-    auto key = rec.fields[0];
+    std::string key = rec.fields[0];  // Ключевое поле (строка)
     int index = hashFunction(key);
     int startIdx = index;
-    int probes = 0;
     bool collisionOccurred = false;
 
     // Линейное зондирование
     while (!m_data[index].isEmpty && !m_data[index].isDeleted) {
-        auto keyLeft = m_data[index].fields[0];
-        auto keyRight = rec.fields[0];
-        if (keyLeft == keyRight) {
-            return false; // Ошибка: Ключ '" << rec.key << "' уже существует
+        // Проверка на дубликат ключа
+        if (m_data[index].fields[0] == key && !m_data[index].isDeleted) {
+            return false; // Ключ уже существует
         }
-        index = (index + 1) % N;
-        probes++;
+        
+        index = (index + 1) % N;  // Циклический переход
         collisionOccurred = true;
         
-        // Защита от бесконечного цикла (если таблица полна)
+        // Защита от зацикливания при полной таблице
         if (index == startIdx) {
-            return false; // Ошибка: Таблица переполнена (циклический поиск)
+            return false;
         }
     }
 
+    // Фиксация коллизии
     if (collisionOccurred) {
         m_totalCollisions++;
     }
 
+    // Вставка записи
     Record newRec = rec;
     newRec.isEmpty = false;
     newRec.isDeleted = false;
@@ -61,6 +61,7 @@ bool HashTable::Add(const Record& rec)
     m_data[index] = newRec;
     m_count++;
     m_collisionHistory.push_back(m_totalCollisions);
+    
     return true;
 }
 
@@ -106,11 +107,21 @@ std::vector<Record> HashTable::GetData() const
 
 int HashTable::hashFunction(const std::string& key)
 {
-    long long val = 1;
-    for (char c : key) {
-        val = (val * static_cast<int>(c)) % 100;
+    // Этап 1: Мультипликативный метод (все символы) → берём последние 2 цифры
+    long long product = 1;
+    for (unsigned char c : key) {
+        product *= static_cast<int>(c);
+        // Опционально: ограничиваем переполнение, но не обрезаем до 2 цифр на каждом шаге
+        if (product > 1000000000LL) product %= 1000000000LL;
     }
+    int twoDigits = static_cast<int>(product % 100);
 
-    long long sq = val * val;
-    return (sq >> 4) & 0x3F;
+    // Этап 2: Метод квадрата → извлекаем 6 средних битов для N=64
+    long long square = static_cast<long long>(twoDigits) * twoDigits;
+    
+    // Для числа до 9801 (14 бит) средние 6 бит — это биты 4..9
+    // Сдвигаем вправо на 4, затем маска 0x3F (6 бит)
+    int hashIndex = (static_cast<int>(square) >> 4) & 0x3F;  // [0..63]
+    
+    return hashIndex;
 }
