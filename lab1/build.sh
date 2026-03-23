@@ -1,4 +1,4 @@
 #bin/bash!
 
-cmake -S ./src -B ./build
-cmake --build ./build
+cmake -S ./lab1/src -B ./lab1/build
+cmake --build ./lab1/build
