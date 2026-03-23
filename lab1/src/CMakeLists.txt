@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(core)
-add_subdirectory(tui)
+add_subdirectory(app)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
