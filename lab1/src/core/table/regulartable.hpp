@@ -4,17 +4,20 @@
 class RegularTable : public TableBase
 {
 public:
-    explicit RegularTable(const std::string& filepath = "./files/file.csv");
+    explicit RegularTable(const std::string& filepath = "./src/files/file.csv");
     ~RegularTable() override = default;
     
-    bool Modify(std::vector<std::string> fieldsNew) override;
-    bool Add(const Record& rec) override;
-    bool Delete(const std::string& key) override;
-    int Find(const std::string& key) override;
+    bool modify(std::vector<std::string> fieldsNew) override;
+    bool add(const Record& rec) override;
+    bool remove(const std::string& key) override;
+    int find(const std::string& key) override;
 
-    std::vector<Record> GetData() const override;
+    std::vector<Record> getData() const override;
 
 private:
+    static const int N = 64;
     std::vector<Record> m_data;
+    
+    int m_count {};
     
 };

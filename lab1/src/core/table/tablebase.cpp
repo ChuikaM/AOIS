@@ -15,7 +15,7 @@ static std::string trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-void TableBase::Load(const std::string& filepath) 
+void TableBase::load(const std::string& filepath) 
 {   
     if (!fs::exists(filepath)) {
         throw std::runtime_error("File not found: " + filepath);
@@ -45,7 +45,7 @@ void TableBase::Load(const std::string& filepath)
             line.pop_back();
         }
         
-        std::vector<std::string> fields = parseCSVLine(line);
+        std::vector<std::string> fields = m_parseCSVLine(line);
         
         // Trim каждого поля после парсинга
         for (auto& field : fields) {
@@ -71,13 +71,12 @@ void TableBase::Load(const std::string& filepath)
             }
             rec.isEmpty = false;
             rec.isDeleted = false;
-            rec.viaCollision = false;
             m_table_data.push_back(std::move(rec));
         }
     }
 }
 
-std::vector<std::string> TableBase::parseCSVLine(const std::string& line) 
+std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line) 
 {
     std::vector<std::string> fields;
     std::string field;
@@ -105,15 +104,15 @@ std::vector<std::string> TableBase::parseCSVLine(const std::string& line)
     return fields;
 }
 
-std::vector<Record> TableBase::GetTableData() const
+std::vector<Record> TableBase::getTableData() const
 {
     return m_table_data;
 }
-Record TableBase::GetDataAt(int index) const
+Record TableBase::getDataAt(int index) const
 {
     return m_table_data[index];
 }
-std::vector<std::string> TableBase::GetTitles() const
+std::vector<std::string> TableBase::getTitles() const
 {
     return m_titles;
 }

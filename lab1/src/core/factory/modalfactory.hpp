@@ -36,8 +36,17 @@ public:
         std::function<void()> on_refresh;
     };
 
-    static ftxui::Component create(TableType type, 
-                                   ModalAction action, 
-                                   TableBase* table,
-                                   Context ctx);
+    ftxui::Component create(TableType type, 
+                            ModalAction action, 
+                            TableBase* table,
+                            Context ctx);
+
+private:
+    ftxui::Component m_createPrintView(TableBase* table, ftxui::Color header_color);
+    ftxui::Component m_createAddForm(TableBase* table, ModalFactory::Context ctx);
+    ftxui::Component m_createEditForm(TableBase* table, ModalFactory::Context ctx);
+    ftxui::Component m_createDeleteForm(TableBase* table, ModalFactory::Context ctx);
+    ftxui::Component m_createFindForm(TableBase* table, ModalFactory::Context ctx);
+    ftxui::Component m_createCollisionsView(TableBase* table);
+
 };

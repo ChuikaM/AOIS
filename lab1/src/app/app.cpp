@@ -15,8 +15,8 @@
 
 App::App()
 {
-    regularTable = std::make_unique<RegularTable>();
-    hashTable = std::make_unique<HashTable>();
+    m_regularTable = std::make_unique<RegularTable>();
+    m_hashTable = std::make_unique<HashTable>();
 
     m_found_record = std::make_unique<Record>();
 }
@@ -41,18 +41,18 @@ void App::Run()
         mainMenuFactory->create(OptionType::RegularTableMenu, m_current_tab),
         mainMenuFactory->create(OptionType::HashTableMenu, m_current_tab),
         
-        modalFactory->create(TableType::Regular, ModalAction::Print, regularTable.get(), ctx),
-        modalFactory->create(TableType::Regular, ModalAction::Add, regularTable.get(), ctx),
-        modalFactory->create(TableType::Regular, ModalAction::Edit, regularTable.get(), ctx),
-        modalFactory->create(TableType::Regular, ModalAction::Delete, regularTable.get(), ctx),
-        modalFactory->create(TableType::Regular, ModalAction::Find, regularTable.get(), ctx),
+        modalFactory->create(TableType::Regular, ModalAction::Print, m_regularTable.get(), ctx),
+        modalFactory->create(TableType::Regular, ModalAction::Add, m_regularTable.get(), ctx),
+        modalFactory->create(TableType::Regular, ModalAction::Edit, m_regularTable.get(), ctx),
+        modalFactory->create(TableType::Regular, ModalAction::Delete, m_regularTable.get(), ctx),
+        modalFactory->create(TableType::Regular, ModalAction::Find, m_regularTable.get(), ctx),
     
-        modalFactory->create(TableType::Hash, ModalAction::Print, hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Add, hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Edit, hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Delete, hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Find, hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Collisions, hashTable.get(), ctx)
+        modalFactory->create(TableType::Hash, ModalAction::Print, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Add, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Edit, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Delete, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Find, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Collisions, m_hashTable.get(), ctx)
     }, &m_current_tab);
 
     std::vector<std::string> titles {
@@ -64,10 +64,10 @@ void App::Run()
         return ftxui::vbox({
             ftxui::text(titles[m_current_tab]) | ftxui::bold | ftxui::center,
             ftxui::separator(),
-            tabs->Render() | ftxui::flex | ftxui::frame | ftxui::vscroll_indicator,
+            tabs->Render() | ftxui::flex,
             ftxui::separator(),
             ftxui::text(m_current_tab == 0 ? "Enter: Выбор" : "Enter: Выбор | Esc: Назад") | ftxui::dim | ftxui::center,
-        }) | ftxui::border | ftxui::flex | ftxui::frame | ftxui::vscroll_indicator;
+        }) | ftxui::border | ftxui::flex;
     });
 
     renderer |= ftxui::CatchEvent([&](ftxui::Event e) {

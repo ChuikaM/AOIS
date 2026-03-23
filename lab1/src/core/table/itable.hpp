@@ -6,9 +6,8 @@
 
 struct Record {
     std::vector<std::string> fields;
-    bool isEmpty = false;
+    bool isEmpty = true;
     bool isDeleted = false;
-    bool viaCollision = false;
 };
 
 class ITable
@@ -16,12 +15,12 @@ class ITable
 public:
     virtual ~ITable() = default;
 
-    virtual void Load(const std::string& filePath) = 0;
-    virtual bool Modify(std::vector<std::string> fieldsNew) = 0;
-    virtual bool Add(const Record& rec) = 0;
-    virtual bool Delete(const std::string& key) = 0;
-    virtual int Find(const std::string& key) = 0;
+    virtual void load(const std::string& filePath) = 0;
+    virtual bool modify(std::vector<std::string> fieldsNew) = 0;
+    virtual bool add(const Record& rec) = 0;
+    virtual bool remove(const std::string& key) = 0;
+    virtual int find(const std::string& key) = 0;
 
-    virtual std::vector<Record> GetTableData() const = 0;
+    virtual std::vector<Record> getTableData() const = 0;
 
 };

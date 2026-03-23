@@ -1,7 +1,7 @@
 #bin/bash!
 
 echo "Start Configuring..."
-cmake -S ./src -B ./build
+cmake -S ./ -B ./build
 echo "Configuring has been ended!"
 
 echo "Start Building..."
