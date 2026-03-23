@@ -60,7 +60,6 @@ bool HashTable::Add(const Record& rec)
     
     m_data[index] = newRec;
     m_count++;
-    m_collisionHistory.push_back(m_totalCollisions);
     
     return true;
 }
@@ -105,7 +104,7 @@ std::vector<Record> HashTable::GetData() const
     return m_data;
 }
 
-int HashTable::hashFunction(const std::string& key)
+int HashTable::hashFunction(const std::string& key) const
 {
     // Этап 1: Мультипликативный метод (все символы) → берём последние 2 цифры
     long long product = 1;

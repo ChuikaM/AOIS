@@ -16,12 +16,10 @@ public:
     std::vector<Record> GetData() const override;
 
 private:
-    int hashFunction(const std::string& key);
-    void collisionWorker();
+    int hashFunction(const std::string& key) const;
     
     static const int N = 64;
     std::vector<Record> m_data{N};
-    std::vector<int> m_collisionHistory;
 
     int m_totalCollisions {};
     int m_count {};

@@ -157,7 +157,6 @@ static ftxui::Component CreateDeleteForm(TableBase* table, ModalFactory::Context
 
 static ftxui::Component CreateFindForm(TableBase* table, ModalFactory::Context ctx) {
     auto key_title = table->GetTitles().empty() ? "Ключ" : table->GetTitles()[0];
-    
     std::vector<ftxui::Component> rows;
     
     rows.push_back(ftxui::Container::Horizontal({
@@ -166,11 +165,18 @@ static ftxui::Component CreateFindForm(TableBase* table, ModalFactory::Context c
     }));
     
     rows.push_back(ftxui::Button("Найти запись", [table, ctx] {
+        auto data = table->GetData();
         if (!ctx.search_key || ctx.search_key->empty()) return;
-        bool success = table->Find(*ctx.search_key);
+        int index = table->Find(*ctx.search_key);
+        auto success = index != -1;
         if (ctx.operation_success) *ctx.operation_success = success;
         if (ctx.feedback_message) {
-            *ctx.feedback_message = success ? "✓ Найдено" : "✗ Не найдено";
+            std::stringstream ss;
+            if(success)
+                ss << data[index].fields[1] << data[index].fields[2];
+            else  
+                ss << "Не найдено";
+            *ctx.feedback_message = ss.str();
         }
     }));
     
