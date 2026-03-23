@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <iterator>
 
-Menu::Menu(std::vector<std::pair<std::string, std::unique_ptr<ICommand>>> options)
-    : m_options(std::move(options))
+Menu::Menu(std::vector<std::pair<std::string, std::unique_ptr<ICommand>>>&& options)
+    : m_options(std::move(options)), m_selected(0)
 {}
 
 ftxui::Component Menu::CreateMenu()

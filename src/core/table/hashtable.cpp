@@ -108,7 +108,7 @@ int HashTable::hashFunction(const std::string& key)
 {
     long long val = 1;
     for (char c : key) {
-        val = (val * (int)c) % 100;
+        val = (val * static_cast<int>(c)) % 100;
     }
 
     long long sq = val * val;

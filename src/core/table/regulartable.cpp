@@ -1,12 +1,12 @@
-#include <txttable.hpp>
+#include <regulartable.hpp>
 
-TxtTable::TxtTable(const std::string& filepath)
+RegularTable::RegularTable(const std::string& filepath)
 {
     Load(filepath);
     m_data = GetTableData();
 }
 
-bool TxtTable::Modify(std::vector<std::string> fieldsNew)
+bool RegularTable::Modify(std::vector<std::string> fieldsNew)
 {
     auto key = fieldsNew[0];
     int index = Find(key);
@@ -15,35 +15,35 @@ bool TxtTable::Modify(std::vector<std::string> fieldsNew)
         {
             m_data[index].fields[i] = fieldsNew[i];
         }
-        return true;  // Запись обновлена
+        return true;
     }
-    return false;  // Запись не найдена
+    return false;
 }
 
-bool TxtTable::Add(const Record& rec)
+bool RegularTable::Add(const Record& rec)
 {
     for (const auto& r : m_data) {
         auto keyLeft = r.fields[0];
         auto keyRight = rec.fields[0];
         if (keyLeft == keyRight) {
-            return false; // Ошибка: Ключ уже существует
+            return false;
         }
     }
     m_data.push_back(rec);
-    return true; // Запись добавлена
+    return true;
 }
 
-bool TxtTable::Delete(const std::string& key)
+bool RegularTable::Delete(const std::string& key)
 {
     int idx = Find(key);
     if (idx != -1) {
         m_data.erase(m_data.begin() + idx);
-        return true; // Запись удалена
+        return true;
     }
-    return false; // Запись не найдена
+    return false;
 }
 
-int TxtTable::Find(const std::string& key)
+int RegularTable::Find(const std::string& key)
 {
     for (size_t i = 0; i < m_data.size(); ++i) {
         auto keyLeft = m_data[i].fields[0];
@@ -52,7 +52,7 @@ int TxtTable::Find(const std::string& key)
     return -1;
 }
 
-std::vector<Record> TxtTable::GetData() const
+std::vector<Record> RegularTable::GetData() const
 {
     return m_data;
 }

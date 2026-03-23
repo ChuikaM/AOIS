@@ -1,12 +1,11 @@
 #pragma once
 #include <tablebase.hpp>
-#include <map>
 
-class TxtTable : public TableBase
+class RegularTable : public TableBase
 {
 public:
-    explicit TxtTable(const std::string& filepath = "./files/file.csv");
-    ~TxtTable() override = default;
+    explicit RegularTable(const std::string& filepath = "./files/file.csv");
+    ~RegularTable() override = default;
     
     bool Modify(std::vector<std::string> fieldsNew) override;
     bool Add(const Record& rec) override;

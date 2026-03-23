@@ -1,6 +1,5 @@
 #pragma once
 #include <tablebase.hpp>
-#include <map>
 
 class HashTable : public TableBase
 {
