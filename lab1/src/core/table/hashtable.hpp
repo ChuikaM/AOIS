@@ -4,24 +4,17 @@
 class HashTable : public TableBase
 {
 public:
-    explicit HashTable(const std::string& filepath = "./files/file.csv");
+    explicit HashTable() = default;
     ~HashTable() override = default;
     
-    bool Modify(std::vector<std::string> fieldsNew) override;
-    bool Add(const Record& rec) override;
-    bool Delete(const std::string& key) override;
-    int Find(const std::string& key) override;
-    int Collisions() const;
-
-    std::vector<Record> GetData() const override;
+    bool add(const Record& rec) override;
+    size_t find(const std::string& key) override;
+    size_t getTotalCollisions() const;
 
 private:
-    int hashFunction(const std::string& key) const;
-    
-    static const int N = 64;
-    std::vector<Record> m_data{N};
+    bool linear_probing(int& index, const std::string& key);
+    int m_hashFunction(const std::string& key) const;
 
-    int m_totalCollisions {};
-    int m_count {};
+    size_t m_totalCollisions {};
 
 };

@@ -14,7 +14,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ftxui::dom
     ftxui::screen
     menu
-    state
     command
     table
 )

@@ -23,17 +23,16 @@
 2) [Задание](#задание)
 3) [Ход работы](#ход-работы)
 
-- 3.1. [UML диаграммы](#uml-диаграммы)
-- 3.2. [Работа программы](#работа-программы)
-- 3.3. [Главное меню](#главное-меню)
-- 3.4. [Обычная таблица](#обычная-таблица)
-- 3.5. [Хэш-таблица](#хэш-таблица)
-- 3.6. [Графики](#графики)
-- 3.7. [Результаты тестирования](#результаты-тестирования)
-- 3.8. [How to Run](#how-to-run)
-- 3.8.1 [Windows](#windows)
-- 3.8.2 [MacOS](#macos)
-- 3.8.3 [Linux](#linux)
+- 3.1. [Работа программы](#работа-программы)
+- 3.2. [Главное меню](#главное-меню)
+- 3.3. [Обычная таблица](#обычная-таблица)
+- 3.4. [Хэш-таблица](#хэш-таблица)
+- 3.5. [График](#график)
+- 3.6. [Результаты тестирования](#результаты-тестирования)
+- 3.7. [How to Run](#how-to-run)
+- 3.7.1 [Windows](#windows)
+- 3.7.2 [MacOS](#macos)
+- 3.7.3 [Linux](#linux)
 
 # Цель работы
 Изучить основные принципы хэширования, построить программную модель,
@@ -61,14 +60,8 @@
 
 В ходе данной лабораторной работы я освоил базовую реализацию функции хэширования для таблицы, состоящую из 3-х колонок.
 Также воспользовался системой контроля версий(СКВ) Git и его приемником для хранения кода в открытом доступе GitHub.
-Данная работа использует репозиторий для работы с TUI: [https://github.com/ArthurSonzogni/ftxui](https://github.com/ArthurSonzogni/ftxui)
-
-## UML диаграммы
-[Назад к содержанию](#содержание)
-
-Для облегчения чтения кода, а также понимание взаимодействия между модулями моей программы, приведу следующую UML диаграмму:
-
-![UML](img/general/uml.png)
+Данная работа использует репозиторий для работы с TUI: [https://github.com/ArthurSonzogni/ftxui](https://github.com/ArthurSonzogni/ftxui).
+Спасибо ему за помощь.
 
 ## Работа программы
 [Назад к содержанию](#содержание)
@@ -79,23 +72,58 @@
 ### Главное меню
 [Назад к содержанию](#содержание)
 
-![Results: mainmenu](img/results)
+![Results: mainmenu](img/results/mainmenu.png)
 
 ### Обычная таблица
 [Назад к содержанию](#содержание)
 
-![Results: regular table: add](img/)
+Меню:
+![Results: regular table: menu](img/results/regulartable.png)
+
+Вывод:
+![Results: regular table: print](img/results/regulartable_print.png)
+
+Добавление:
+![Results: regular table: add](img/results/regulartable_add.png)
+
+Изменение:
+![Results: regular table: modify](img/results/regulartable_modify.png)
+
+Удаление:
+![Results: regular table: remove](img/results/regulartable_remove.png)
+
+Поиск:
+![Results: regular table: find](img/results/regulartable_find.png)
 
 ### Хэш-таблица
 [Назад к содержанию](#содержание)
 
-![results](img/)
+Меню:
+![Results: hash table: menu](img/results/hashtable.png)
 
-## Графики
+Вывод:
+![Results: hash table: print](img/results/hashtable_print.png)
+
+Добавление:
+![Results: hash table: add](img/results/hashtable_add.png)
+
+Изменение:
+![Results: hash table: modify](img/results/hashtable_modify.png)
+
+Удаление:
+![Results: hash table: remove](img/results/hashtable_remove.png)
+
+Поиск:
+![Results: hash table: find](img/results/hashtable_find.png)
+
+Коллизия:
+![Results: hash table: collisions](img/results/hashtable_collisions.png)
+
+## График
 [Назад к содержанию](#содержание)
 
 По заданию необходимо продемонстрировать в виде графика зависимости числа добавленных записей от числа коллизий.
-По оси Х будет располагаться число записей,а  по оси Y - текущее суммарное число коллизий.
+По оси Х будет располагаться число записей, а  по оси Y - текущее суммарное число коллизий.
 
 ![Graph](img/general/graph.png)
 
@@ -105,7 +133,7 @@
 Куда же без наших тестов...
 В данных тестах мы будем проверять нашу хэш-таблицу на работоспособность (Добавление, Удаление, Редактирование, Нахождение записи по ключу).
 
-![Test](img/test/test1.png)
+![Test hash table](img/test/test.png)
 
 # How to Run
 [Назад к содержанию](#содержание)

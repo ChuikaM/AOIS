@@ -6,28 +6,83 @@
 #include <tablebase.hpp>
 #include <hashtable.hpp>
 
-static ftxui::Component CreatePrintView(TableBase* table, ftxui::Color header_color) {
-    return ftxui::Renderer([table, header_color] {
-        auto data = table->GetData();
-        auto titles = table->GetTitles();
+ftxui::Component ModalFactory::create(TableType type, ModalAction action, TableBase* table, Context ctx) {
+    ftxui::Color header_color = (type == TableType::Regular) ? ftxui::Color::Cyan : ftxui::Color::Green;
+    
+    switch (action) 
+    {
+        case ModalAction::Print:
+            return m_createPrintView(table, header_color);
+            
+        case ModalAction::Add:
+            return m_createAddForm(table, ctx);
+            
+        case ModalAction::Edit:
+            return m_createEditForm(table, ctx);
+            
+        case ModalAction::Delete:
+            return m_createDeleteForm(table, ctx);
+            
+        case ModalAction::Find:
+            return m_createFindForm(table, ctx);
+            
+        case ModalAction::Collisions:
+            return (type == TableType::Hash) 
+                ? m_createCollisionsView(table) 
+                : ftxui::Renderer([] { 
+                    return ftxui::text("Только для HashTable") | ftxui::dim;
+                });
+            
+        default:
+            return ftxui::Renderer([] { 
+                return ftxui::text("Неизвестное действие") | ftxui::dim; 
+            });
+    }
+}
+
+ftxui::Component ModalFactory::m_createPrintView(TableBase* table, ftxui::Color header_color) {
+    auto renderer = ftxui::Renderer([table, header_color] {
+        auto data = table->getData();
+        auto titles = table->getTitles();
         
-        std::vector<std::vector<std::string>> entries = {titles};
+        std::vector<std::vector<std::string>> entries;
+        entries.push_back(titles);
         for (const auto& rec : data) {
             if (!rec.isEmpty) entries.push_back(rec.fields);
         }
 
-        auto t = ftxui::Table(entries);
-        t.SelectAll().Border(ftxui::LIGHT);
-        t.SelectAll().SeparatorHorizontal(ftxui::LIGHT);
-        t.SelectAll().SeparatorVertical(ftxui::LIGHT);
-        t.SelectRow(0).Decorate(ftxui::bold | ftxui::color(header_color));
-        
-        return t.Render() | ftxui::flex | ftxui::frame | ftxui::vscroll_indicator;
+        const int rows_per_table = 16;
+        std::vector<ftxui::Element> tables;
+
+        for (int chunk = 0; chunk < 4; ++chunk) {
+            std::vector<std::vector<std::string>> chunk_entries;
+            chunk_entries.push_back(titles);
+            
+            int start_row = 1 + chunk * rows_per_table;
+            int end_row = std::min(start_row + rows_per_table, static_cast<int>(entries.size()));
+            
+            for (int i = start_row; i < end_row; ++i) {
+                chunk_entries.push_back(entries[i]);
+            }
+
+            auto t = ftxui::Table(chunk_entries);
+            t.SelectAll().Border(ftxui::LIGHT);
+            t.SelectAll().SeparatorHorizontal(ftxui::LIGHT);
+            t.SelectAll().SeparatorVertical(ftxui::LIGHT);
+            t.SelectRow(0).Decorate(ftxui::bold | ftxui::color(header_color));
+            
+            tables.push_back(t.Render());
+        }
+
+        auto content = ftxui::hbox(tables) | ftxui::frame | ftxui::vscroll_indicator;
+        return content;
     });
+    
+    return ftxui::Container::Vertical({renderer});
 }
 
-static ftxui::Component CreateAddForm(TableBase* table, ModalFactory::Context ctx) {
-    auto titles = table->GetTitles();
+ftxui::Component ModalFactory::m_createAddForm(TableBase* table, ModalFactory::Context ctx) {
+    auto titles = table->getTitles();
     
     if (ctx.input_fields && ctx.input_fields->empty()) {
         ctx.input_fields->resize(titles.size());
@@ -52,10 +107,10 @@ static ftxui::Component CreateAddForm(TableBase* table, ModalFactory::Context ct
             Record rec;
             rec.fields = *ctx.input_fields;
             rec.isEmpty = false;
-            bool success = table->Add(rec);
+            bool success = table->add(rec);
             if (ctx.operation_success) *ctx.operation_success = success;
             if (ctx.feedback_message) {
-                *ctx.feedback_message = success ? "✓ Добавлено" : "✗ Ошибка";
+                *ctx.feedback_message = success ? "Добавлено" : "Ошибка";
             }
             if (success) {
                 std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
@@ -72,11 +127,11 @@ static ftxui::Component CreateAddForm(TableBase* table, ModalFactory::Context ct
         }));
     }
 
-    return ftxui::Container::Vertical(std::move(rows)) | ftxui::flex | ftxui::frame;
+    return ftxui::Container::Vertical(std::move(rows)) | ftxui::frame;
 }
 
-static ftxui::Component CreateEditForm(TableBase* table, ModalFactory::Context ctx) {
-    auto titles = table->GetTitles();
+ftxui::Component ModalFactory::m_createEditForm(TableBase* table, ModalFactory::Context ctx) {
+    auto titles = table->getTitles();
     
     if (ctx.input_fields && ctx.input_fields->empty()) {
         ctx.input_fields->resize(titles.size());
@@ -101,10 +156,10 @@ static ftxui::Component CreateEditForm(TableBase* table, ModalFactory::Context c
             Record rec;
             rec.fields = *ctx.input_fields;
             rec.isEmpty = false;
-            bool success = table->Modify(rec.fields);
+            bool success = table->modify(rec.fields);
             if (ctx.operation_success) *ctx.operation_success = success;
             if (ctx.feedback_message) {
-                *ctx.feedback_message = success ? "✓ Отредактировано" : "✗ Ошибка";
+                *ctx.feedback_message = success ? "Отредактировано" : "Ошибка";
             }
             if (success) {
                 std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
@@ -121,11 +176,11 @@ static ftxui::Component CreateEditForm(TableBase* table, ModalFactory::Context c
         }));
     }
 
-    return ftxui::Container::Vertical(std::move(rows)) | ftxui::flex | ftxui::frame;
+    return ftxui::Container::Vertical(std::move(rows)) | ftxui::frame;
 }
 
-static ftxui::Component CreateDeleteForm(TableBase* table, ModalFactory::Context ctx) {
-    auto key_title = table->GetTitles().empty() ? "Ключ" : table->GetTitles()[0];
+ftxui::Component ModalFactory::m_createDeleteForm(TableBase* table, ModalFactory::Context ctx) {
+    auto key_title = table->getTitles().empty() ? "Ключ" : table->getTitles()[0];
     
     std::vector<ftxui::Component> rows;
     
@@ -136,10 +191,13 @@ static ftxui::Component CreateDeleteForm(TableBase* table, ModalFactory::Context
     
     rows.push_back(ftxui::Button("Удалить", [table, ctx] {
         if (!ctx.search_key || ctx.search_key->empty()) return;
-        bool success = table->Delete(*ctx.search_key);
+        bool success = table->remove(*ctx.search_key);
         if (ctx.operation_success) *ctx.operation_success = success;
         if (ctx.feedback_message) {
-            *ctx.feedback_message = success ? "✓ Удалено" : "✗ Не найдено";
+            *ctx.feedback_message = success ? "Удалено" : "Не найдено";
+        }
+        if (success) {
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         }
     }));
     
@@ -152,11 +210,11 @@ static ftxui::Component CreateDeleteForm(TableBase* table, ModalFactory::Context
         }));
     }
     
-    return ftxui::Container::Vertical(std::move(rows)) | ftxui::flex | ftxui::frame;
+    return ftxui::Container::Vertical(std::move(rows)) | ftxui::frame;
 }
 
-static ftxui::Component CreateFindForm(TableBase* table, ModalFactory::Context ctx) {
-    auto key_title = table->GetTitles().empty() ? "Ключ" : table->GetTitles()[0];
+ftxui::Component ModalFactory::m_createFindForm(TableBase* table, ModalFactory::Context ctx) {
+    auto key_title = table->getTitles().empty() ? "Ключ" : table->getTitles()[0];
     std::vector<ftxui::Component> rows;
     
     rows.push_back(ftxui::Container::Horizontal({
@@ -165,18 +223,21 @@ static ftxui::Component CreateFindForm(TableBase* table, ModalFactory::Context c
     }));
     
     rows.push_back(ftxui::Button("Найти запись", [table, ctx] {
-        auto data = table->GetData();
         if (!ctx.search_key || ctx.search_key->empty()) return;
-        int index = table->Find(*ctx.search_key);
+        int index = table->find(*ctx.search_key);
+        auto data = table->getData()[index];
         auto success = index != -1;
         if (ctx.operation_success) *ctx.operation_success = success;
         if (ctx.feedback_message) {
             std::stringstream ss;
             if(success)
-                ss << data[index].fields[1] << data[index].fields[2];
+                ss << "Найдено: " << data.fields[1] << " " << data.fields[2];
             else  
                 ss << "Не найдено";
             *ctx.feedback_message = ss.str();
+        }
+        if (success) {
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         }
     }));
     
@@ -189,14 +250,14 @@ static ftxui::Component CreateFindForm(TableBase* table, ModalFactory::Context c
         }));
     }
     
-    return ftxui::Container::Vertical(std::move(rows)) | ftxui::flex | ftxui::frame;
+    return ftxui::Container::Vertical(std::move(rows)) | ftxui::frame;
 }
 
-static ftxui::Component CreateCollisionsView(TableBase* table) {
+ftxui::Component ModalFactory::m_createCollisionsView(TableBase* table) {
     return ftxui::Renderer([table] {
         auto hash_table = dynamic_cast<HashTable*>(table);
         if (hash_table) {
-            int count = hash_table->Collisions();
+            int count = hash_table->getTotalCollisions();
             return ftxui::hbox({
                 ftxui::text("Коллизии: "),
                 ftxui::text(std::to_string(count)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta)
@@ -204,38 +265,4 @@ static ftxui::Component CreateCollisionsView(TableBase* table) {
         }
         return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
     });
-}
-
-ftxui::Component ModalFactory::create(TableType type, ModalAction action, TableBase* table, Context ctx) {
-    ftxui::Color header_color = (type == TableType::Regular) ? ftxui::Color::Cyan : ftxui::Color::Green;
-    
-    switch (action) 
-    {
-        case ModalAction::Print:
-            return CreatePrintView(table, header_color);
-            
-        case ModalAction::Add:
-            return CreateAddForm(table, ctx);
-            
-        case ModalAction::Edit:
-            return CreateEditForm(table, ctx);
-            
-        case ModalAction::Delete:
-            return CreateDeleteForm(table, ctx);
-            
-        case ModalAction::Find:
-            return CreateFindForm(table, ctx);
-            
-        case ModalAction::Collisions:
-            return (type == TableType::Hash) 
-                ? CreateCollisionsView(table) 
-                : ftxui::Renderer([] { 
-                    return ftxui::text("Только для HashTable") | ftxui::dim;
-                });
-            
-        default:
-            return ftxui::Renderer([] { 
-                return ftxui::text("Неизвестное действие") | ftxui::dim; 
-            });
-    }
 }

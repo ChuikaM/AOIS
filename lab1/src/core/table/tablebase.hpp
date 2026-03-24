@@ -4,19 +4,32 @@
 class TableBase : public ITable
 {
 public:
+    static const size_t N = 64;
+
+    explicit TableBase();
     ~TableBase() override = default;
 
-    void Load(const std::string& filepath = "./files/file.csv") override;
+    void loadFromFile(const std::string& filepath = "./src/files/file.csv");
+    
+    bool modify(std::vector<std::string> fieldsNew) override;
+    bool remove(const std::string& key) override;
 
-    std::vector<Record> GetTableData() const override;
-    virtual std::vector<Record> GetData() const = 0;
-    Record GetDataAt(int index) const;
-    std::vector<std::string> GetTitles() const;
+    std::vector<std::string> getTitles() const override;
+    std::vector<Record> getData() const override;
 
+    bool canAdd(const Record& rec) const;
+    bool recordEmptyAt(size_t index) const;
+    bool recordExistsAt(size_t index, const std::string& key) const;
+    size_t indexOfFreeRecord() const;
+    void addRecordAt(size_t index, const Record& rec);
+    
 private:
-    std::vector<std::string> parseCSVLine(const std::string& line);
+    std::vector<Record> m_load(const std::string& filepath);
+    std::vector<std::string> m_parseCSVLine(const std::string& line);
  
     std::vector<std::string> m_titles;
-    std::vector<Record> m_table_data;
+    std::vector<Record> m_data;
+
+    size_t m_count {};
     
 };
