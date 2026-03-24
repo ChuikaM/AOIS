@@ -222,13 +222,13 @@ ftxui::Component ModalFactory::m_createFindForm(TableBase* table, ModalFactory::
     rows.push_back(ftxui::Button("Найти запись", [table, ctx] {
         if (!ctx.search_key || ctx.search_key->empty()) return;
         int index = table->find(*ctx.search_key);
-        auto data = table->getDataAt(index);
+        auto data = table->getData()[index];
         auto success = index != -1;
         if (ctx.operation_success) *ctx.operation_success = success;
         if (ctx.feedback_message) {
             std::stringstream ss;
             if(success)
-                ss << data.fields[1] << data.fields[2];
+                ss << data.fields[1] << " " << data.fields[2];
             else  
                 ss << "Не найдено";
             *ctx.feedback_message = ss.str();

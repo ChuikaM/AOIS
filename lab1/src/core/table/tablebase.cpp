@@ -5,7 +5,10 @@
 #include <vector>
 #include <filesystem>
 
-namespace fs = std::filesystem;
+TableBase::TableBase()
+{
+    m_data.reserve(N);
+}
 
 static std::string trim(const std::string& str) {
     const char* whitespace = " \t\r\n";
@@ -15,8 +18,9 @@ static std::string trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-void TableBase::load(const std::string& filepath) 
+std::vector<Record> TableBase::m_load(const std::string& filepath) 
 {   
+    namespace fs = std::filesystem;
     if (!fs::exists(filepath)) {
         throw std::runtime_error("File not found: " + filepath);
     }
@@ -25,8 +29,7 @@ void TableBase::load(const std::string& filepath)
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open file: " + filepath);
     }
-    
-    m_table_data.clear();
+    m_data.clear();
     m_titles.clear();
     
     std::string line;
@@ -71,10 +74,11 @@ void TableBase::load(const std::string& filepath)
             }
             rec.isEmpty = false;
             rec.isDeleted = false;
-            m_table_data.push_back(std::move(rec));
+            m_data.push_back(std::move(rec));
         }
     }
     file.close();
+    return m_data;
 }
 
 std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line) 
@@ -105,15 +109,76 @@ std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line)
     return fields;
 }
 
-std::vector<Record> TableBase::getTableData() const
-{
-    return m_table_data;
-}
-Record TableBase::getDataAt(int index) const
-{
-    return m_table_data[index];
-}
 std::vector<std::string> TableBase::getTitles() const
 {
     return m_titles;
+}
+
+void TableBase::loadFromFile(const std::string &filepath)
+{
+    auto table_data = m_load(filepath);
+    for(const auto& rec : table_data)
+    {
+        add(rec);
+    }
+}
+
+bool TableBase::modify(std::vector<std::string> fieldsNew)
+{
+    auto key = fieldsNew[0];
+    int index = find(key);
+    if (index != -1) {
+        for(size_t i = 0; i < fieldsNew.size(); i++)
+        {
+            m_data[index].fields[i] = fieldsNew[i];
+        }
+        return true;
+    }
+    return false;
+}
+
+bool TableBase::remove(const std::string &key)
+{
+    int index = find(key);
+    if (index != -1) {
+        m_data[index].isEmpty = true; 
+        m_data[index].isDeleted = true; 
+        for(auto field : m_data[index].fields)
+        {
+            field = ""; 
+        }
+        --m_count;
+        return true;
+    }
+    return false;
+}
+
+std::vector<Record> TableBase::getData() const
+{
+    return m_data;
+}
+
+bool TableBase::canAdd(const Record &rec) const
+{
+    return !rec.fields.empty() && m_count < N;
+}
+
+bool TableBase::recordEmptyAt(int index) const
+{
+    return m_data[index].isEmpty;
+}
+
+bool TableBase::recordExistsAt(int index, const std::string& key) const
+{
+    auto keyLeft = m_data[index].fields[0];
+    return !m_data[index].isDeleted && keyLeft == key;
+}
+
+void TableBase::addRecordAt(int index, const Record& rec)
+{
+    m_data[index] = rec;
+    m_data[index].isEmpty = false;
+    m_data[index].isDeleted = false;
+    
+    ++m_count;
 }
