@@ -74,6 +74,7 @@ void TableBase::load(const std::string& filepath)
             m_table_data.push_back(std::move(rec));
         }
     }
+    file.close();
 }
 
 std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line) 

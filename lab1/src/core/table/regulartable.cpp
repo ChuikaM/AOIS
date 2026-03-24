@@ -2,7 +2,7 @@
 
 RegularTable::RegularTable(const std::string& filepath)
 {
-    m_data.resize(N);
+    m_data.reserve(N);
     load(filepath);
     for(const auto& rec : getTableData())
     {

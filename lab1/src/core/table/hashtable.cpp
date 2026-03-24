@@ -67,6 +67,7 @@ bool HashTable::remove(const std::string& key)
 {
     int index = find(key);
     if (index != -1) {
+        m_data[index].isEmpty = true; 
         m_data[index].isDeleted = true; 
         m_data[index].fields[0] = ""; 
         --m_count;
