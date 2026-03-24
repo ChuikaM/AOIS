@@ -5,7 +5,7 @@ bool HashTable::add(const Record& rec)
     if(!TableBase::canAdd(rec)) return false;
 
     std::string key = rec.fields[0];
-    size_t index = m_hashFunction(key);
+    int index = m_hashFunction(key);
 
     bool result = linear_probing(index, key);
     if(!result) return false;
@@ -16,8 +16,8 @@ bool HashTable::add(const Record& rec)
 
 size_t HashTable::find(const std::string& key)
 {
-    size_t index = m_hashFunction(key);
-    size_t startIdx = index;
+    int index = m_hashFunction(key);
+    int startIdx = index;
 
     while (!TableBase::recordEmptyAt(index)) {
         if(TableBase::recordExistsAt(index, key)) return index;
@@ -33,10 +33,10 @@ size_t HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
-bool HashTable::linear_probing(int index, const std::string& key)
+bool HashTable::linear_probing(int& index, const std::string& key)
 {
     int probes = 0;
-    size_t startIdx = index;
+    int startIdx = index;
 
     while (!TableBase::recordEmptyAt(index)) {
         if(TableBase::recordExistsAt(index, key)) 
@@ -49,9 +49,8 @@ bool HashTable::linear_probing(int index, const std::string& key)
             return false;
     }
 
-    if (probes > 0) {
+    if (probes > 0) 
         m_totalCollisions += probes;
-    }
     return true;
 }
 
@@ -65,7 +64,7 @@ int HashTable::m_hashFunction(const std::string &key) const
     size_t twoDigits = static_cast<size_t>(product % 100);
     long long square = static_cast<long long>(twoDigits) * twoDigits;
     
-    size_t hashIndex = (static_cast<size_t>(square) >> 4) & 0x3F;
+    int hashIndex = (static_cast<size_t>(square) >> 4) & 0x3F;
     
     return hashIndex;
 }
