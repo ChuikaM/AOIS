@@ -2,7 +2,6 @@
 
 #include <ftxui/component/component.hpp>
 #include <settabcommand.hpp>
-#include <actioncommand.hpp>
 
 #include <memory>
 #include <vector>
@@ -35,7 +34,6 @@ ftxui::Component MainMenuFactory::m_prepareMainMenu(int& m_current_tab)
     std::vector<std::pair<std::string, std::unique_ptr<ICommand>>> mainMenuOptions;
     mainMenuOptions.push_back({"Работа с таблицей", std::make_unique<SetTabCommand>(m_current_tab, 1)});
     mainMenuOptions.push_back({"Работа с хэш-таблицей", std::make_unique<SetTabCommand>(m_current_tab, 2)});
-    mainMenuOptions.push_back({"Выход", std::make_unique<ActionCommand>([]{})});
 
     m_mainMenu.emplace(std::move(mainMenuOptions)); 
     return m_mainMenu->CreateMenu();

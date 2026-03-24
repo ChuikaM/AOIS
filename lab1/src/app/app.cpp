@@ -3,7 +3,6 @@
 #include <ftxui/component/screen_interactive.hpp>
 
 #include <settabcommand.hpp>
-#include <actioncommand.hpp>
 
 #include <modalfactory.hpp>
 #include <mainmenufactory.hpp>
