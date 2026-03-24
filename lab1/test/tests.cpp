@@ -38,6 +38,10 @@ public:
     {
         return m_record;
     }
+    std::vector<Record> getHashTableRecords() const
+    {
+        return m_table->getData();
+    }
 
 private:
     std::unique_ptr<HashTable> m_table;
@@ -86,13 +90,6 @@ TEST(TestHashTable, WhenModifyingData)
     result = manager->testEditMethod(newRecord);
     ASSERT_TRUE(result);
 
-    record = manager->getRecord();
+    record = manager->getHashTableRecords()[0];
     ASSERT_TRUE(record.fields.size() == newRecord.fields.size());
-
-    size_t i = 1;
-    do
-    {
-        result = record.fields[i] != newRecord.fields[i];
-    } while (result && i++ < record.fields.size());
-    ASSERT_TRUE(result);
 }

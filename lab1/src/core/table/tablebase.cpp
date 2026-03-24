@@ -7,7 +7,7 @@
 
 TableBase::TableBase()
 {
-    m_data.reserve(N);
+    m_data.resize(N);
 }
 
 static std::string trim(const std::string& str) {
@@ -162,19 +162,23 @@ bool TableBase::canAdd(const Record &rec) const
 {
     return !rec.fields.empty() && m_count < N;
 }
-
-bool TableBase::recordEmptyAt(int index) const
+bool TableBase::recordEmptyAt(size_t index) const
 {
     return m_data[index].isEmpty;
 }
-
-bool TableBase::recordExistsAt(int index, const std::string& key) const
+bool TableBase::recordExistsAt(size_t index, const std::string& key) const
 {
     auto keyLeft = m_data[index].fields[0];
     return !m_data[index].isDeleted && keyLeft == key;
 }
+size_t TableBase::indexOfFreeRecord() const
+{
+    for(size_t i = 0; i < N; i++)
+        if(m_data[i].isEmpty) return i;
+    return -1;
+}
 
-void TableBase::addRecordAt(int index, const Record& rec)
+void TableBase::addRecordAt(size_t index, const Record& rec)
 {
     m_data[index] = rec;
     m_data[index].isEmpty = false;

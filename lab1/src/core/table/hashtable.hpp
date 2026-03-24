@@ -8,13 +8,13 @@ public:
     ~HashTable() override = default;
     
     bool add(const Record& rec) override;
-    int find(const std::string& key) override;
-    int getTotalCollisions() const;
+    size_t find(const std::string& key) override;
+    size_t getTotalCollisions() const;
 
 private:
-    bool linear_zondirovanie(int index, std::string key);
+    bool linear_probing(int index, const std::string& key);
     int m_hashFunction(const std::string& key) const;
 
-    int m_totalCollisions {};
+    size_t m_totalCollisions {};
 
 };

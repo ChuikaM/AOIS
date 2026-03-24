@@ -7,7 +7,6 @@
 
 #include <modalfactory.hpp>
 #include <mainmenufactory.hpp>
-#include <statefactory.hpp>
 
 #include <tablebase.hpp>
 #include <regulartable.hpp>
@@ -19,7 +18,7 @@ App::App()
     m_regularTable->loadFromFile();
     m_hashTable = std::make_unique<HashTable>();
     m_hashTable->loadFromFile();
-    
+
     m_found_record = std::make_unique<Record>();
 }
 App::~App() = default;

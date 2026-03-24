@@ -5,19 +5,19 @@ bool HashTable::add(const Record& rec)
     if(!TableBase::canAdd(rec)) return false;
 
     std::string key = rec.fields[0];
-    int index = m_hashFunction(key);
+    size_t index = m_hashFunction(key);
 
-    bool result = linear_zondirovanie(index, key);
+    bool result = linear_probing(index, key);
     if(!result) return false;
 
     TableBase::addRecordAt(index, rec);
     return true;
 }
 
-int HashTable::find(const std::string& key)
+size_t HashTable::find(const std::string& key)
 {
-    int index = m_hashFunction(key);
-    int startIdx = index;
+    size_t index = m_hashFunction(key);
+    size_t startIdx = index;
 
     while (!TableBase::recordEmptyAt(index)) {
         if(TableBase::recordExistsAt(index, key)) return index;
@@ -28,29 +28,29 @@ int HashTable::find(const std::string& key)
     return -1;
 }
 
-int HashTable::getTotalCollisions() const
+size_t HashTable::getTotalCollisions() const
 { 
     return m_totalCollisions;
 }
 
-bool HashTable::linear_zondirovanie(int index, std::string key)
+bool HashTable::linear_probing(int index, const std::string& key)
 {
-    bool collisionOccurred = false;
     int probes = 0;
+    size_t startIdx = index;
 
     while (!TableBase::recordEmptyAt(index)) {
-        if(TableBase::recordExistsAt(index, key)) return false;
+        if(TableBase::recordExistsAt(index, key)) 
+            return false;
         
         index = (index + 1) % N;
-        collisionOccurred = true;
+        ++probes;
         
-        if (++probes > N) {
+        if (probes > N || index == startIdx) 
             return false;
-        }
     }
 
-    if (collisionOccurred) {
-        m_totalCollisions++;
+    if (probes > 0) {
+        m_totalCollisions += probes;
     }
     return true;
 }
@@ -59,13 +59,13 @@ int HashTable::m_hashFunction(const std::string &key) const
 {
     long long product = 1;
     for (unsigned char c : key) {
-        product *= static_cast<int>(c);
+        product *= static_cast<size_t>(c);
         if (product > 1000000000LL) product %= 1000000000LL;
     }
-    int twoDigits = static_cast<int>(product % 100);
+    size_t twoDigits = static_cast<size_t>(product % 100);
     long long square = static_cast<long long>(twoDigits) * twoDigits;
     
-    int hashIndex = (static_cast<int>(square) >> 4) & 0x3F;
+    size_t hashIndex = (static_cast<size_t>(square) >> 4) & 0x3F;
     
     return hashIndex;
 }
