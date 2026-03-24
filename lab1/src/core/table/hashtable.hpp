@@ -12,7 +12,7 @@ public:
     int getTotalCollisions() const;
 
 private:
-    bool linear_probing(int& index, const std::string& key);
+    bool m_linear_probing(int& index, const std::string& key);
     int m_hashFunction(const std::string& key) const;
 
     int m_totalCollisions {};

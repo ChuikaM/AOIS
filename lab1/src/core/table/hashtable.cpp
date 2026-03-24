@@ -7,7 +7,7 @@ bool HashTable::add(const Record& rec)
     std::string key = rec.fields[0];
     int index = m_hashFunction(key);
 
-    bool result = linear_probing(index, key);
+    bool result = m_linear_probing(index, key);
     if(!result) return false;
 
     TableBase::addRecordAt(index, rec);
@@ -33,8 +33,7 @@ int HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
-#include <iostream>
-bool HashTable::linear_probing(int& index, const std::string& key)
+bool HashTable::m_linear_probing(int& index, const std::string& key)
 {
     int probes = 0;
     int startIdx = index;
