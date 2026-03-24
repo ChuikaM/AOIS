@@ -4,7 +4,7 @@
 class TableBase : public ITable
 {
 public:
-    static const size_t N = 64;
+    static const int N = 64;
 
     explicit TableBase();
     ~TableBase() override = default;
@@ -18,10 +18,10 @@ public:
     std::vector<Record> getData() const override;
 
     bool canAdd(const Record& rec) const;
-    bool recordEmptyAt(size_t index) const;
-    bool recordExistsAt(size_t index, const std::string& key) const;
-    size_t indexOfFreeRecord() const;
-    void addRecordAt(size_t index, const Record& rec);
+    bool recordEmptyAt(int index) const;
+    bool recordExistsAt(int index, const std::string& key) const;
+    int indexOfFreeRecord() const;
+    void addRecordAt(int index, const Record& rec);
     
 private:
     std::vector<Record> m_load(const std::string& filepath);
@@ -30,6 +30,6 @@ private:
     std::vector<std::string> m_titles;
     std::vector<Record> m_data;
 
-    size_t m_count {};
+    int m_count {};
     
 };

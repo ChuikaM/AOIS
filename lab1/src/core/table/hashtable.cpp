@@ -14,7 +14,7 @@ bool HashTable::add(const Record& rec)
     return true;
 }
 
-size_t HashTable::find(const std::string& key)
+int HashTable::find(const std::string& key)
 {
     int index = m_hashFunction(key);
     int startIdx = index;
@@ -28,7 +28,7 @@ size_t HashTable::find(const std::string& key)
     return -1;
 }
 
-size_t HashTable::getTotalCollisions() const
+int HashTable::getTotalCollisions() const
 { 
     return m_totalCollisions;
 }
@@ -47,7 +47,7 @@ bool HashTable::linear_probing(int& index, const std::string& key)
         
         if (probes > N || index == startIdx) 
             return false;
-    }
+        }
 
     if (probes > 0) 
         m_totalCollisions += probes;
@@ -58,13 +58,13 @@ int HashTable::m_hashFunction(const std::string &key) const
 {
     long long product = 1;
     for (unsigned char c : key) {
-        product *= static_cast<size_t>(c);
+        product *= static_cast<int>(c);
         if (product > 1000000000LL) product %= 1000000000LL;
     }
-    size_t twoDigits = static_cast<size_t>(product % 100);
+    int twoDigits = static_cast<int>(product % 100);
     long long square = static_cast<long long>(twoDigits) * twoDigits;
     
-    int hashIndex = (static_cast<size_t>(square) >> 4) & 0x3F;
+    int hashIndex = (static_cast<int>(square) >> 4) & 0x3F;
     
     return hashIndex;
 }

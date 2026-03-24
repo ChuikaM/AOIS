@@ -88,7 +88,7 @@ std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line)
     std::string field;
     bool inQuotes = false;
     
-    for (size_t i = 0; i < line.size(); ++i) {
+    for (int i = 0; i < line.size(); ++i) {
         char c = line[i];
         
         if (c == '"') {
@@ -129,7 +129,7 @@ bool TableBase::modify(std::vector<std::string> fieldsNew)
     auto key = fieldsNew[0];
     int index = find(key);
     if (index != -1) {
-        for(size_t i = 0; i < fieldsNew.size(); i++)
+        for(int i = 0; i < fieldsNew.size(); i++)
         {
             m_data[index].fields[i] = fieldsNew[i];
         }
@@ -163,23 +163,23 @@ bool TableBase::canAdd(const Record &rec) const
 {
     return !rec.fields.empty() && m_count < N;
 }
-bool TableBase::recordEmptyAt(size_t index) const
+bool TableBase::recordEmptyAt(int index) const
 {
     return m_data[index].isEmpty;
 }
-bool TableBase::recordExistsAt(size_t index, const std::string& key) const
+bool TableBase::recordExistsAt(int index, const std::string& key) const
 {
     auto keyLeft = m_data[index].fields[0];
     return !m_data[index].isDeleted && keyLeft == key;
 }
-size_t TableBase::indexOfFreeRecord() const
+int TableBase::indexOfFreeRecord() const
 {
-    for(size_t i = 0; i < N; i++)
+    for(int i = 0; i < N; i++)
         if(m_data[i].isEmpty) return i;
     return -1;
 }
 
-void TableBase::addRecordAt(size_t index, const Record& rec)
+void TableBase::addRecordAt(int index, const Record& rec)
 {
     m_data[index] = rec;
     m_data[index].isEmpty = false;
