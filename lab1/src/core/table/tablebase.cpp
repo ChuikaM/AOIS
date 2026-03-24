@@ -8,6 +8,7 @@
 TableBase::TableBase()
 {
     m_data.resize(N);
+    m_data.reserve(N);
 }
 
 static std::string trim(const std::string& str) {
