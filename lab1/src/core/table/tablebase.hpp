@@ -20,6 +20,7 @@ public:
     bool canAdd(const Record& rec) const;
     bool recordEmptyAt(int index) const;
     bool recordExistsAt(int index, const std::string& key) const;
+    bool recordDeletedAt(int index) const;
     int indexOfFreeRecord() const;
     void addRecordAt(int index, const Record& rec);
     

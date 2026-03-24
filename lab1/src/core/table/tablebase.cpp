@@ -167,6 +167,10 @@ bool TableBase::recordEmptyAt(int index) const
 {
     return m_data[index].isEmpty;
 }
+bool TableBase::recordDeletedAt(int index) const
+{
+    return m_data[index].isDeleted;
+}
 bool TableBase::recordExistsAt(int index, const std::string& key) const
 {
     auto keyLeft = m_data[index].fields[0];

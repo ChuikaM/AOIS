@@ -33,22 +33,26 @@ int HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
+#include <iostream>
 bool HashTable::linear_probing(int& index, const std::string& key)
 {
     int probes = 0;
     int startIdx = index;
 
-    while (!TableBase::recordEmptyAt(index)) {
+    while (!TableBase::recordEmptyAt(index) && !TableBase::recordDeletedAt(index)) {
         if(TableBase::recordExistsAt(index, key)) 
-            return false;
-        
-        index = (index + 1) % N;
-        ++probes;
-        
-        if (probes > N || index == startIdx) 
+        {
+            if (probes > 0) 
+                ++m_totalCollisions;
             return false;
         }
-
+        index = (index + 1) % TableBase::N;
+       
+        ++probes;
+        
+        if (probes > N || index == startIdx)
+            return false;
+    }
     if (probes > 0) 
         m_totalCollisions += probes;
     return true;
