@@ -28,7 +28,7 @@
 - 3.3. [Главное меню](#главное-меню)
 - 3.4. [Обычная таблица](#обычная-таблица)
 - 3.5. [Хэш-таблица](#хэш-таблица)
-- 3.6. [Графики](#графики)
+- 3.6. [График](#график)
 - 3.7. [Результаты тестирования](#результаты-тестирования)
 - 3.8. [How to Run](#how-to-run)
 - 3.8.1 [Windows](#windows)
@@ -61,7 +61,8 @@
 
 В ходе данной лабораторной работы я освоил базовую реализацию функции хэширования для таблицы, состоящую из 3-х колонок.
 Также воспользовался системой контроля версий(СКВ) Git и его приемником для хранения кода в открытом доступе GitHub.
-Данная работа использует репозиторий для работы с TUI: [https://github.com/ArthurSonzogni/ftxui](https://github.com/ArthurSonzogni/ftxui)
+Данная работа использует репозиторий для работы с TUI: [https://github.com/ArthurSonzogni/ftxui](https://github.com/ArthurSonzogni/ftxui).
+Спасибо ему за помощь.
 
 ## UML диаграммы
 [Назад к содержанию](#содержание)
@@ -79,17 +80,52 @@
 ### Главное меню
 [Назад к содержанию](#содержание)
 
-![Results: mainmenu](img/results)
+![Results: mainmenu](img/results/mainmenu.png)
 
 ### Обычная таблица
 [Назад к содержанию](#содержание)
 
-![Results: regular table: add](img/)
+Меню:
+![Results: regular table: menu](img/results/regulartable.png)
+
+Вывод:
+![Results: regular table: print](img/results/regulartable_print.png)
+
+Добавление:
+![Results: regular table: add](img/results/regulartable_add.png)
+
+Изменение:
+![Results: regular table: modify](img/results/regulartable_modify.png)
+
+Удаление:
+![Results: regular table: remove](img/results/regulartable_remove.png)
+
+Поиск:
+![Results: regular table: find](img/results/regulartable_find.png)
 
 ### Хэш-таблица
 [Назад к содержанию](#содержание)
 
-![results](img/)
+Меню:
+![Results: hash table: menu](img/results/hashtable.png)
+
+Вывод:
+![Results: hash table: print](img/results/hashtable_print.png)
+
+Добавление:
+![Results: hash table: add](img/results/hashtable_add.png)
+
+Изменение:
+![Results: hash table: modify](img/results/hashtable_modify.png)
+
+Удаление:
+![Results: hash table: remove](img/results/hashtable_remove.png)
+
+Поиск:
+![Results: hash table: find](img/results/hashtable_find.png)
+
+Коллизия:
+![Results: hash table: collisions](img/results/hashtable_collisions.png)
 
 ## График
 [Назад к содержанию](#содержание)

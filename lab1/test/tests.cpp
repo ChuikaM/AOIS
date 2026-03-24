@@ -71,7 +71,7 @@ TEST(TestHashTable, WhenRemovingData)
     result = manager->testRemoveMethod();
     ASSERT_TRUE(result);
 }
-TEST(TestHashTable, WhenModifingData)
+TEST(TestHashTable, WhenModifyingData)
 {   
     auto manager = std::make_unique<HashTableManager>();
     auto result = manager->testAddMethod();

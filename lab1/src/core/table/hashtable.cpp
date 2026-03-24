@@ -35,7 +35,6 @@ int HashTable::getTotalCollisions() const
 
 bool HashTable::linear_zondirovanie(int index, std::string key)
 {
-    int startIdx = index;
     bool collisionOccurred = false;
     int probes = 0;
 

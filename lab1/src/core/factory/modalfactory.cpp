@@ -196,6 +196,9 @@ ftxui::Component ModalFactory::m_createDeleteForm(TableBase* table, ModalFactory
         if (ctx.feedback_message) {
             *ctx.feedback_message = success ? "Удалено" : "Не найдено";
         }
+        if (success) {
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
+        }
     }));
     
     if (ctx.feedback_message) {
@@ -228,10 +231,13 @@ ftxui::Component ModalFactory::m_createFindForm(TableBase* table, ModalFactory::
         if (ctx.feedback_message) {
             std::stringstream ss;
             if(success)
-                ss << data.fields[1] << " " << data.fields[2];
+                ss << "Найдено: " << data.fields[1] << " " << data.fields[2];
             else  
                 ss << "Не найдено";
             *ctx.feedback_message = ss.str();
+        }
+        if (success) {
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         }
     }));
     
