@@ -11,7 +11,8 @@ TableBase::TableBase()
     m_data.reserve(N);
 }
 
-static std::string trim(const std::string& str) {
+static std::string trim(const std::string& str) 
+{
     const char* whitespace = " \t\r\n";
     auto start = str.find_first_not_of(whitespace);
     if (start == std::string::npos) return "";
@@ -22,41 +23,30 @@ static std::string trim(const std::string& str) {
 std::vector<Record> TableBase::m_load(const std::string& filepath) 
 {   
     namespace fs = std::filesystem;
-    if (!fs::exists(filepath)) {
-        throw std::runtime_error("File not found: " + filepath);
-    }
+    if (!fs::exists(filepath)) throw std::runtime_error("File not found: " + filepath);
     
     std::ifstream file(filepath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Cannot open file: " + filepath);
-    }
+    if (!file.is_open()) throw std::runtime_error("Cannot open file: " + filepath);
+
     m_data.clear();
     m_titles.clear();
     
     std::string line;
     int lineNum = 0;
     bool titlesLoaded = false;
-
-    while (std::getline(file, line)) {
+    while (std::getline(file, line)) 
+    {
         ++lineNum;
     
-        if (trim(line).empty()) {
-            continue;
-        }
+        if (trim(line).empty()) continue;
     
-        // Убираем \r для совместимости с Windows
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
-        }
+        if (!line.empty() && line.back() == '\r') line.pop_back();
         
         std::vector<std::string> fields = m_parseCSVLine(line);
+        for (auto& field : fields) field = trim(field);
         
-        // Trim каждого поля после парсинга
-        for (auto& field : fields) {
-            field = trim(field);
-        }
-        
-        if (fields.size() != 3) {
+        if (fields.size() != 3) 
+        {
             throw std::runtime_error(
                 "Line " + std::to_string(lineNum) + 
                 " has " + std::to_string(fields.size()) + 
@@ -64,15 +54,16 @@ std::vector<Record> TableBase::m_load(const std::string& filepath)
             );
         }
         
-        if (!titlesLoaded) {
-            m_titles = fields; // Заголовки тоже триммируем
+        if (!titlesLoaded) 
+        {
+            m_titles = fields;
             titlesLoaded = true;
-        } else {
+        } 
+        else 
+        {
             Record rec;
-            for(const auto& field : fields)
-            {
-                rec.fields.push_back(field);
-            }
+            for(const auto& field : fields) rec.fields.push_back(field);
+
             rec.isEmpty = false;
             rec.isDeleted = false;
             m_data.push_back(std::move(rec));
@@ -86,27 +77,33 @@ std::vector<std::string> TableBase::m_parseCSVLine(const std::string& line)
 {
     std::vector<std::string> fields;
     std::string field;
-    bool inQuotes = false;
-    
-    for (int i = 0; i < line.size(); ++i) {
+    auto inQuotes = false;
+    for (int i = 0; i < line.size(); i++) 
+    {
         char c = line[i];
-        
-        if (c == '"') {
-            // Обработка экранированных кавычек: "" внутри кавычек
-            if (inQuotes && i + 1 < line.size() && line[i + 1] == '"') {
+        if (c == '"') 
+        {
+            if (inQuotes && i + 1 < line.size() && line[i + 1] == '"') 
+            {
                 field += '"';
-                ++i; // пропускаем следующую кавычку
-            } else {
+                i++;
+            } 
+            else 
+            {
                 inQuotes = !inQuotes;
             }
-        } else if (c == ',' && !inQuotes) {
+        } 
+        else if (c == ',' && !inQuotes) 
+        {
             fields.push_back(field);
             field.clear();
-        } else {
+        } 
+        else 
+        {
             field += c;
         }
     }
-    fields.push_back(field); // добавляем последнее поле
+    fields.push_back(field);
     return fields;
 }
 
@@ -120,38 +117,32 @@ void TableBase::loadFromFile(const std::string &filepath)
     auto table_data = m_load(filepath);
     for(const auto& rec : table_data)
     {
-        add(rec);
+        auto index = indexOfFreeRecord();
+        add(rec, index);
     }
 }
 
-bool TableBase::modify(std::vector<std::string> fieldsNew)
+bool TableBase::modify(std::vector<std::string> fieldsNew, int index)
 {
+    if(!indexValid(index)) return false;
     auto key = fieldsNew[0];
-    int index = find(key);
-    if (index != -1) {
-        for(int i = 0; i < fieldsNew.size(); i++)
-        {
-            m_data[index].fields[i] = fieldsNew[i];
-        }
-        return true;
-    }
-    return false;
+    for(int i = 0; i < fieldsNew.size(); i++) 
+        m_data[index].fields[i] = fieldsNew[i];
+
+    return true;
 }
 
-bool TableBase::remove(const std::string &key)
+bool TableBase::remove(const std::string &key, int index)
 {
-    int index = find(key);
-    if (index != -1) {
-        m_data[index].isEmpty = true; 
-        m_data[index].isDeleted = true; 
-        for(auto field : m_data[index].fields)
-        {
-            field = ""; 
-        }
-        --m_count;
-        return true;
-    }
-    return false;
+    if(!indexValid(index)) return false;
+    
+    m_data[index].isEmpty = true; 
+    m_data[index].isDeleted = true; 
+    for(auto field : m_data[index].fields)
+        field = ""; 
+
+    --m_count;
+    return true;
 }
 
 std::vector<Record> TableBase::getData() const
@@ -159,10 +150,16 @@ std::vector<Record> TableBase::getData() const
     return m_data;
 }
 
-bool TableBase::canAdd(const Record &rec) const
+bool TableBase::canAdd(const Record &rec, int index) const
 {
-    return !rec.fields.empty() && m_count < N;
+    return !rec.fields.empty() && m_count < N 
+            && indexValid(index);
 }
+bool TableBase::indexValid(int index) const
+{
+    return index != -1;
+}
+
 bool TableBase::recordEmptyAt(int index) const
 {
     return m_data[index].isEmpty;
@@ -179,7 +176,8 @@ bool TableBase::recordExistsAt(int index, const std::string& key) const
 int TableBase::indexOfFreeRecord() const
 {
     for(int i = 0; i < N; i++)
-        if(m_data[i].isEmpty) return i;
+        if(m_data[i].isEmpty) 
+            return i;
     return -1;
 }
 

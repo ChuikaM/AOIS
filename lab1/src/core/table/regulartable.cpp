@@ -1,21 +1,14 @@
 #include <regulartable.hpp>
 
-bool RegularTable::add(const Record& rec)
+bool RegularTable::add(const Record& rec, int index)
 {
-    if(!TableBase::canAdd(rec)) return false;
-
-    int index = TableBase::indexOfFreeRecord();
-    if(index == -1) return false;
+    if(!TableBase::canAdd(rec, index)) return false;
 
     TableBase::addRecordAt(index, rec);
     return true;
 }
 
-int RegularTable::find(const std::string& key)
+bool RegularTable::find(const std::string& key, int index)
 {
-    for (int i = 0; i < TableBase::getData().size(); i++) 
-    {
-        if(TableBase::recordExistsAt(i, key)) return i;
-    }
-    return -1;
+    return TableBase::recordExistsAt(index, key);
 }

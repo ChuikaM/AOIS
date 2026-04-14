@@ -7,7 +7,7 @@ public:
     explicit RegularTable() = default;
     ~RegularTable() override = default;
 
-    bool add(const Record& rec) override;
-    int find(const std::string& key) override;
+    bool add(const Record& rec, int index) override;
+    bool find(const std::string& key, int index) override;
 
 };
