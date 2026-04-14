@@ -121,22 +121,21 @@ ftxui::Component ModalFactory::m_createAddForm(ITable* table, ModalFactory::Cont
         bool all_filled = std::all_of(ctx.input_fields->begin(), ctx.input_fields->end(),
             [](const std::string& s) { return !s.empty(); });
         
-        if (all_filled) 
-        {
-            Record rec;
-            rec.fields = *ctx.input_fields;
-            rec.isEmpty = false;
+        if (!all_filled) return;
+        Record rec;
+        rec.fields = *ctx.input_fields;
+        rec.isEmpty = false;
 
-            int index = getIndexOfKey(table, *ctx.search_key);
-            auto success = table->add(rec, index);
-            if (ctx.operation_success) 
-                *ctx.operation_success = success;
-            if (ctx.feedback_message) 
-                *ctx.feedback_message = success ? "Добавлено" : "Ошибка";
-            
-            if (success) 
-                std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
-        }
+        int index = getIndexOfKey(table, *ctx.search_key);
+        auto success = table->add(rec, index);
+        if (ctx.operation_success) 
+            *ctx.operation_success = success;
+        if (ctx.feedback_message) 
+            *ctx.feedback_message = success ? "Добавлено" : "Ошибка";
+        
+        if (success)
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
+        
     }));
 
     if (ctx.feedback_message) 
@@ -155,7 +154,6 @@ ftxui::Component ModalFactory::m_createAddForm(ITable* table, ModalFactory::Cont
 ftxui::Component ModalFactory::m_createEditForm(ITable* table, ModalFactory::Context ctx) 
 {
     auto titles = table->getTitles();
-    
     if (ctx.input_fields && ctx.input_fields->empty()) 
     {
         ctx.input_fields->resize(titles.size());
@@ -175,21 +173,18 @@ ftxui::Component ModalFactory::m_createEditForm(ITable* table, ModalFactory::Con
         bool all_filled = std::all_of(ctx.input_fields->begin(), ctx.input_fields->end(),
             [](const std::string& s) { return !s.empty(); });
         
-        if (all_filled) {
-            Record rec;
-            rec.fields = *ctx.input_fields;
-            rec.isEmpty = false;
+        if (!all_filled) return;
+        Record rec;
+        rec.fields = *ctx.input_fields;
+        rec.isEmpty = false;
 
-            int index = getIndexOfKey(table, *ctx.search_key);
-            bool success = table->modify(rec.fields, index);
-            if (ctx.operation_success) *ctx.operation_success = success;
-            if (ctx.feedback_message) {
-                *ctx.feedback_message = success ? "Отредактировано" : "Ошибка";
-            }
-            if (success) {
-                std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
-            }
-        }
+        int index = getIndexOfKey(table, *ctx.search_key);
+        bool success = table->modify(rec.fields, index);
+        if (ctx.operation_success) *ctx.operation_success = success;
+        if (ctx.feedback_message) *ctx.feedback_message = success ? "Отредактировано" : "Ошибка";
+
+        if (success)
+            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
     }));
 
     if (ctx.feedback_message)
@@ -223,6 +218,7 @@ ftxui::Component ModalFactory::m_createDeleteForm(ITable* table, ModalFactory::C
             *ctx.operation_success = success;
         if (ctx.feedback_message) 
             *ctx.feedback_message = success ? "Удалено" : "Не найдено";
+            
         if (success) 
             std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         
