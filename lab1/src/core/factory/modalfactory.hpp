@@ -18,8 +18,10 @@ enum ModalAction {
     Collisions
 };
 
-class TableBase;
+class ITable;
 class Record;
+
+int getIndexOfKey(ITable* table, const std::string& key);
 
 class ModalFactory {
 public:
@@ -38,15 +40,15 @@ public:
 
     ftxui::Component create(TableType type, 
                             ModalAction action, 
-                            TableBase* table,
+                            ITable* table,
                             Context ctx);
 
 private:
-    ftxui::Component m_createPrintView(TableBase* table, ftxui::Color header_color);
-    ftxui::Component m_createAddForm(TableBase* table, ModalFactory::Context ctx);
-    ftxui::Component m_createEditForm(TableBase* table, ModalFactory::Context ctx);
-    ftxui::Component m_createDeleteForm(TableBase* table, ModalFactory::Context ctx);
-    ftxui::Component m_createFindForm(TableBase* table, ModalFactory::Context ctx);
-    ftxui::Component m_createCollisionsView(TableBase* table);
+    ftxui::Component m_createPrintView(ITable* table, ftxui::Color header_color);
+    ftxui::Component m_createAddForm(ITable* table, ModalFactory::Context ctx);
+    ftxui::Component m_createEditForm(ITable* table, ModalFactory::Context ctx);
+    ftxui::Component m_createDeleteForm(ITable* table, ModalFactory::Context ctx);
+    ftxui::Component m_createFindForm(ITable* table, ModalFactory::Context ctx);
+    ftxui::Component m_createCollisionsView(ITable* table);
 
 };

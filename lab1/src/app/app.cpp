@@ -15,6 +15,7 @@ App::App()
 {
     m_regularTable = std::make_unique<RegularTable>();
     m_regularTable->loadFromFile();
+    
     m_hashTable = std::make_unique<HashTable>();
     m_hashTable->loadFromFile();
 
