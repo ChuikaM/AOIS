@@ -1,11 +1,14 @@
 #pragma once
-#include <tablebase.hpp>
+#include <itable.hpp>
+#include <tableloader.hpp>
 
-class HashTable : public TableBase
+class HashTable : public ITable
 {
 public:
-    explicit HashTable() = default;
+    explicit HashTable(int size);
     ~HashTable() override = default;
+
+    void loadTable(const std::string& filepath) override;
     
     int hashFunction(const std::string &key);
 
@@ -19,6 +22,8 @@ public:
 private:
     bool m_linear_probing(int& index, const std::string& key);
 
+    TableContent m_tableContent;
+    const int N;
     int m_totalCollisions {};
 
 };

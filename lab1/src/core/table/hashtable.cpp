@@ -1,5 +1,20 @@
 #include <hashtable.hpp>
 
+HashTable::HashTable(int size)
+    : N(size)
+{}
+
+void HashTable::loadTable(const std::string &filepath)
+{
+    auto loadedContent = TableLoader::loadFromFile(filepath); // N
+    for(auto record : loadedContent.records)
+    {
+        auto key = record.key;
+        int index = hashFunction(key);
+        add(record, index);
+    }
+}
+
 int HashTable::hashFunction(const std::string &key)
 {
     long long product = 1;
@@ -23,8 +38,8 @@ bool HashTable::add(const Record& rec, int index)
     if(!TableBase::canAdd(rec, index)) 
         return false;
 
-    auto key = rec.fields[0];
-    TableBase::addRecordAt(index, rec);
+    auto key = rec.key;
+    m_tableContent.records[index] = rec;
     return true;
 }
 

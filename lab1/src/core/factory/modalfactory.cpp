@@ -14,9 +14,9 @@ int getIndexOfKey(ITable* table, const std::string& key)
     if(table == nullptr)
         return index;
 
-    if (auto ht = static_cast<HashTable*>(table))
+    if (auto ht = dynamic_cast<HashTable*>(table))
         index = ht->hashFunction(key);
-    else if(auto rt = static_cast<RegularTable*>(table))
+    else if(auto rt = dynamic_cast<RegularTable*>(table))
         index = rt->indexOfFreeRecord();
 
     return index;
@@ -218,7 +218,7 @@ ftxui::Component ModalFactory::m_createDeleteForm(ITable* table, ModalFactory::C
             *ctx.operation_success = success;
         if (ctx.feedback_message) 
             *ctx.feedback_message = success ? "Удалено" : "Не найдено";
-            
+
         if (success) 
             std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         

@@ -5,7 +5,9 @@
 #include <vector>
 
 struct Record {
-    std::vector<std::string> fields;
+    std::string key;
+    std::vector<std::string> values;
+    
     bool isEmpty = true;
     bool isDeleted = false;
 };
@@ -14,6 +16,8 @@ class ITable
 {
 public:
     virtual ~ITable() = default;
+
+    virtual void loadTable(const std::string& filepath) = 0;
 
     virtual bool modify(std::vector<std::string> fieldsNew, int index) = 0;
     virtual bool add(const Record& rec, int index) = 0;
