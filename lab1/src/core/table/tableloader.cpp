@@ -13,7 +13,7 @@ static std::string trim(const std::string& str)
     auto end = str.find_last_not_of(whitespace);
     return str.substr(start, end - start + 1);
 }
-TableContent TableLoader::m_load(const std::string &filepath)
+TableContent TableLoader::loadFromFile(const std::string &filepath, int N)
 {   
     namespace fs = std::filesystem;
     if (!fs::exists(filepath)) 
@@ -31,15 +31,17 @@ TableContent TableLoader::m_load(const std::string &filepath)
     bool titlesLoaded = false;
     while (std::getline(file, line)) 
     {
+        if(lineNum > N) 
+            break;
         ++lineNum;
-    
+
         if (trim(line).empty()) 
             continue;
     
         if (!line.empty() && line.back() == '\r') 
             line.pop_back();
         
-        std::vector<std::string> fields = m_parseCSVLine(line);
+        auto fields = m_parseCSVLine(line);
         for (auto& field : fields) 
             field = trim(field);
         
@@ -54,22 +56,17 @@ TableContent TableLoader::m_load(const std::string &filepath)
         
         if (!titlesLoaded) 
         {
-            titles = fields;
+            titles = std::move(fields);
             titlesLoaded = true;
         } 
         else 
         {
-            Record rec;
-            rec.key = fields[0];
-            for(size_t i = 1; i < fields.size(); i++) 
-                rec.values.push_back(fields[i]);
-            rec.isEmpty = false;
-            rec.isDeleted = false;
+            Record rec { fields };
             records.push_back(std::move(rec));
         }
     }
     file.close();
-    return {records, titles};
+    return { records, titles };
 }
 std::vector<std::string> TableLoader::m_parseCSVLine(const std::string& line) 
 {

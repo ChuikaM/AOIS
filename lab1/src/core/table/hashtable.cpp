@@ -1,31 +1,35 @@
 #include <hashtable.hpp>
+#include <tablehelper.hpp>
+#include <bitset>
 
 HashTable::HashTable(int size)
     : N(size)
-{}
+{
+    m_tableContent.records.reserve(N);
+    m_tableContent.records.resize(N);
+}
 
 void HashTable::loadTable(const std::string &filepath)
 {
-    auto loadedContent = TableLoader::loadFromFile(filepath); // N
+    auto loadedContent = TableLoader::loadFromFile(filepath, N);
     for(auto record : loadedContent.records)
     {
-        auto key = record.key;
+        auto key = record.fields[0];
         int index = hashFunction(key);
         add(record, index);
     }
+    m_tableContent.titles = loadedContent.titles;
 }
 
 int HashTable::hashFunction(const std::string &key)
 {
-    long long product = 1;
-    const int MAX_LONG_NUMBER = 1000000000LL;
+    long long result = 1;
     for (unsigned char c : key) {
-        product *= static_cast<int>(c);
-        if (product > MAX_LONG_NUMBER) product %= MAX_LONG_NUMBER;
+        result *= static_cast<int>(c);
     }
-    int twoDigits = static_cast<int>(product % 100);
+    int twoDigits = static_cast<int>(result % 100);
     auto square = twoDigits * twoDigits;
-    
+
     const int BITS = 6;
     const int SHIFT = (64 - BITS) / 2;
     int index = (square >> SHIFT) & ((1 << BITS) - 1);
@@ -35,53 +39,69 @@ int HashTable::hashFunction(const std::string &key)
 
 bool HashTable::add(const Record& rec, int index)
 {
-    if(!TableBase::canAdd(rec, index)) 
+    if(!TableHelper::canAdd(m_recordsCount, N))
         return false;
 
-    auto key = rec.key;
+    index = m_linear_probing(index);
+    if(!TableHelper::indexValid(index, N)) 
+        return false;
+    
     m_tableContent.records[index] = rec;
+    m_recordsCount++;
     return true;
 }
 
 bool HashTable::find(const std::string& key, int index)
 {
-    auto startIdx = index;
-    while (!TableBase::recordEmptyAt(index)) 
+    if(!TableHelper::indexValid(index, N)) 
+        return false;
+    
+    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N) && index != -1)
     {
-        if(TableBase::recordExistsAt(index, key)) 
-            return true;
-
-        index = (index + 1) % N;
-        if (index == startIdx) break;
+        index = m_linear_probing(index);
     }
-    return false;
+    return index != -1; // Неправильно проверет на сущестование эдемента с ключом
 }
 
-bool HashTable::modify(std::vector<std::string> fieldsNew, int index)
+bool HashTable::modify(const Record& record, int index)
 {
-    if(!indexValid(index)) 
+    if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    auto key = fieldsNew[0];
-    if(TableBase::recordExistsAt(index, key))
-    {
-        if (!m_linear_probing(index, key))
-            return false;
-    }
-    return TableBase::modify(fieldsNew, index);
+    index = m_linear_probing(index);
+    if(!TableHelper::indexValid(index, N)) 
+        return false;
+
+    m_tableContent.records[index] = record;
+    return true;
 }
 
 bool HashTable::remove(const std::string &key, int index)
 {
-    if(!indexValid(index)) 
+    if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    if(TableBase::recordExistsAt(index, key))
-    {
-        if (!m_linear_probing(index, key))
-            return false;
-    }
-    return TableBase::remove(key, index);
+    index = m_linear_probing(index);
+    if(!TableHelper::indexValid(index, N)) 
+        return false;
+
+    m_tableContent.records[index] = {};
+    m_recordsCount--;
+    return true;
+}
+
+int HashTable::indexOfRecord(const std::string &key)
+{
+    return hashFunction(key);
+}
+
+std::vector<Record> HashTable::getData() const
+{
+    return m_tableContent.records;
+}
+std::vector<std::string> HashTable::getTitles() const
+{
+    return m_tableContent.titles;
 }
 
 int HashTable::getTotalCollisions() const
@@ -89,25 +109,15 @@ int HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
-bool HashTable::m_linear_probing(int& index, const std::string& key)
+int HashTable::m_linear_probing(int index)
 {
-    int probes = 0;
-    int startIdx = index;
+    int startIndex = index;
+    while(!TableHelper::recordEmptyAt(m_tableContent, index, N)) {
+        index = (index + 1) % N;
+        if(startIndex == index)
+            return -1;
 
-    while (!TableBase::recordEmptyAt(index) && !TableBase::recordDeletedAt(index)) {
-        if (TableBase::recordExistsAt(index, key)) {
-            if (probes > 0)
-                ++m_totalCollisions;
-            return false;
-        }
-        index = (index + 1) % TableBase::N;
-        ++probes;
-        if (probes > TableBase::N || index == startIdx)
-            return false;
+        ++m_totalCollisions;
     }
-
-    if (probes > 0)
-        m_totalCollisions += probes;
-
-    return true;
+    return index;
 }

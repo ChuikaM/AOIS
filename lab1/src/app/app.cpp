@@ -7,17 +7,18 @@
 #include <modalfactory.hpp>
 #include <mainmenufactory.hpp>
 
-#include <tablebase.hpp>
+#include <itable.hpp>
 #include <regulartable.hpp>
 #include <hashtable.hpp>
+#include <fstream>
 
 App::App()
 {
-    m_regularTable = std::make_unique<RegularTable>();
-    m_regularTable->loadFromFile();
-    
-    m_hashTable = std::make_unique<HashTable>();
-    m_hashTable->loadFromFile();
+    m_regularTable = std::make_unique<RegularTable>(64);
+    m_regularTable->loadTable("./files/file.csv");
+   
+    m_hashTable = std::make_unique<HashTable>(64);
+    m_hashTable->loadTable("./files/file.csv");
 
     m_found_record = std::make_unique<Record>();
 }
@@ -53,13 +54,14 @@ void App::Run()
         modalFactory->create(TableType::Hash, ModalAction::Edit, m_hashTable.get(), ctx),
         modalFactory->create(TableType::Hash, ModalAction::Delete, m_hashTable.get(), ctx),
         modalFactory->create(TableType::Hash, ModalAction::Find, m_hashTable.get(), ctx),
-        modalFactory->create(TableType::Hash, ModalAction::Collisions, m_hashTable.get(), ctx)
+        modalFactory->create(TableType::Hash, ModalAction::Collisions, m_hashTable.get(), ctx),
+        modalFactory->create(TableType::Hash, ModalAction::Graph, m_hashTable.get(), ctx)
     }, &m_current_tab);
 
     std::vector<std::string> titles {
         "Главное меню", "Работа с таблицей", "Работа с хэш-таблицей", 
         "Вывод таблицы", "Добавление в таблицу", "Редактирование таблицы", "Удаление в таблице", "Поиск в таблице",
-        "Вывод хэш-таблицы", "Добавление в хэш-таблицу", "Редактирование хэш-таблицы", "Удаление в хэш-таблице", "Поиск в хэш-таблице", "Коллизии"
+        "Вывод хэш-таблицы", "Добавление в хэш-таблицу", "Редактирование хэш-таблицы", "Удаление в хэш-таблице", "Поиск в хэш-таблице", "Коллизии", "График"
     };
     auto renderer = ftxui::Renderer(tabs, [&] {
         return ftxui::vbox({
