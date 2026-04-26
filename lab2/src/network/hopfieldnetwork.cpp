@@ -3,3 +3,7 @@
 HopfieldNetwork::HopfieldNetwork()
 {
 }
+
+void HopfieldNetwork::train()
+{
+}

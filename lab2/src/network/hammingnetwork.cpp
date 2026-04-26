@@ -3,3 +3,7 @@
 HammingNetwork::HammingNetwork()
 {
 }
+
+void HammingNetwork::train()
+{
+}

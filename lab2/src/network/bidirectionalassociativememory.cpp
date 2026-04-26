@@ -3,3 +3,7 @@
 BidirectionalAssociativeMemory::BidirectionalAssociativeMemory()
 {
 }
+
+void BidirectionalAssociativeMemory::train()
+{
+}
