@@ -1,6 +1,8 @@
 #include <hashtable.hpp>
 #include <tablehelper.hpp>
-#include <bitset>
+#include <iostream>
+#include <limits>
+#include <algorithm>
 
 HashTable::HashTable(int size)
     : N(size)
@@ -23,18 +25,22 @@ void HashTable::loadTable(const std::string &filepath)
 
 int HashTable::hashFunction(const std::string &key)
 {
-    long long result = 1;
-    for (unsigned char c : key) {
-        result *= static_cast<int>(c);
+    unsigned long long result = 1;
+    auto max = std::numeric_limits<long long>::max();
+    for (unsigned char c : key) 
+    {
+        result = (result *static_cast<int>(c)) % max;
     }
     int twoDigits = static_cast<int>(result % 100);
     auto square = twoDigits * twoDigits;
-
-    const int BITS = 6;
-    const int SHIFT = (64 - BITS) / 2;
-    int index = (square >> SHIFT) & ((1 << BITS) - 1);
-    
-    return index;
+   
+    std::vector<int> possible_indexes {
+        (square >> 1) & (N - 1),
+        (square >> 7) & (N - 1),
+        (square >> 4) & (N - 1)
+    };
+    auto iter = std::max_element(possible_indexes.begin(), possible_indexes.end());
+    return *iter;
 }
 
 bool HashTable::add(const Record& rec, int index)
@@ -42,7 +48,9 @@ bool HashTable::add(const Record& rec, int index)
     if(!TableHelper::canAdd(m_recordsCount, N))
         return false;
 
-    index = m_linear_probing(index);
+    if(!TableHelper::recordEmptyAt(m_tableContent, index, N))
+        index = m_linear_probing(index);
+
     if(!TableHelper::indexValid(index, N)) 
         return false;
     
@@ -68,7 +76,10 @@ bool HashTable::modify(const Record& record, int index)
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    index = m_linear_probing(index);
+    while(!TableHelper::recordExistsAt(m_tableContent, record.fields[0], index, N) && index != -1)
+    {
+        index = m_linear_probing(index);
+    }
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -78,10 +89,15 @@ bool HashTable::modify(const Record& record, int index)
 
 bool HashTable::remove(const std::string &key, int index)
 {
+    if(!TableHelper::canRemove(m_recordsCount)) 
+        return false;
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    index = m_linear_probing(index);
+    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N) && index != -1)
+    {
+        index = m_linear_probing(index);
+    }
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -112,6 +128,7 @@ int HashTable::getTotalCollisions() const
 int HashTable::m_linear_probing(int index)
 {
     int startIndex = index;
+    index = (index + 1) % N;
     while(!TableHelper::recordEmptyAt(m_tableContent, index, N)) {
         index = (index + 1) % N;
         if(startIndex == index)

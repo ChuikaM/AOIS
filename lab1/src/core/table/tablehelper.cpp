@@ -10,6 +10,11 @@ bool TableHelper::canAdd(int recordCount, int max)
     return recordCount < max;
 }
 
+bool TableHelper::canRemove(int recordCount)
+{
+    return recordCount >= 0;
+}
+
 bool TableHelper::recordEmptyAt(TableContent content, int index, int max)
 {
     if(!indexValid(index, max)) 
@@ -25,5 +30,5 @@ bool TableHelper::recordExistsAt(TableContent content, const std::string &key, i
         return false;
 
     auto tableRecords = content.records;
-    return !recordEmptyAt(content, index, max) && tableRecords[index].fields[0] == key;
+    return tableRecords[index].fields[0] == key;
 }
