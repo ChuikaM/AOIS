@@ -1,22 +1,15 @@
 #pragma once
-#include <itable.hpp>
-
-struct TableContent {
-    std::vector<Record> records;
-    std::vector<std::string> titles;
-
-};
+#include <tabledata.hpp>
 
 class TableLoader
 {
 public:
-    explicit TableLoader();
+    explicit TableLoader() = default;
     ~TableLoader() = default;
 
-    static TableContent loadFromFile(const std::string& filepath);
+    static TableContent loadFromFile(const std::string& filepath, int N);
     
 private:
-    std::vector<Record> m_load(const std::string& filepath);
-    std::vector<std::string> m_parseCSVLine(const std::string& line);
+    static std::vector<std::string> m_parseCSVLine(const std::string& line);
     
 };

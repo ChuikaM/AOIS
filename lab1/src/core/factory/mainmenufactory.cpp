@@ -63,6 +63,7 @@ ftxui::Component MainMenuFactory::m_prepareHashTableMenu(int &m_current_tab)
     hashTableMenuOptions.push_back({"Удаление", std::make_unique<SetTabCommand>(m_current_tab, 11)});
     hashTableMenuOptions.push_back({"Поиск", std::make_unique<SetTabCommand>(m_current_tab, 12)});
     hashTableMenuOptions.push_back({"Коллизии", std::make_unique<SetTabCommand>(m_current_tab, 13)});
+    hashTableMenuOptions.push_back({"График", std::make_unique<SetTabCommand>(m_current_tab, 14)});
 
     m_hashTableMenu.emplace(std::move(hashTableMenuOptions)); 
     return m_hashTableMenu->CreateMenu();

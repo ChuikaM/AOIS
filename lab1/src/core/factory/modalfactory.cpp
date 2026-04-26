@@ -3,7 +3,7 @@
 #include <ftxui/dom/table.hpp>
 #include <algorithm>
 
-#include <tablebase.hpp>
+#include <itable.hpp>
 #include <hashtable.hpp>
 #include <regulartable.hpp>
 #include <fstream>
@@ -49,6 +49,12 @@ ftxui::Component ModalFactory::create(TableType type, ModalAction action, ITable
                 : ftxui::Renderer([] { 
                     return ftxui::text("Только для HashTable") | ftxui::dim;
                 });
+        case ModalAction::Graph:
+            return (type == TableType::Hash) 
+                ? m_createGraphView(table) 
+                : ftxui::Renderer([] { 
+                    return ftxui::text("Только для HashTable") | ftxui::dim;
+                });
             
         default:
             return ftxui::Renderer([] { 
@@ -64,11 +70,10 @@ ftxui::Component ModalFactory::m_createPrintView(ITable* table, ftxui::Color hea
         auto titles = table->getTitles();
         
         std::vector<std::vector<std::string>> entries;
-        entries.push_back(titles);
+        
         for (const auto& rec : data) 
         {
-            if (!rec.isEmpty) 
-                entries.push_back(rec.fields);
+            entries.push_back(rec.fields);
         }
 
         const int rows_per_table = 16;
@@ -78,7 +83,7 @@ ftxui::Component ModalFactory::m_createPrintView(ITable* table, ftxui::Color hea
             std::vector<std::vector<std::string>> chunk_entries;
             chunk_entries.push_back(titles);
             
-            int start_row = 1 + chunk * rows_per_table;
+            int start_row = chunk * rows_per_table;
             int end_row = std::min(start_row + rows_per_table, static_cast<int>(entries.size()));
             for (int i = start_row; i < end_row; i++) chunk_entries.push_back(entries[i]);
 
@@ -124,9 +129,9 @@ ftxui::Component ModalFactory::m_createAddForm(ITable* table, ModalFactory::Cont
         if (!all_filled) return;
         Record rec;
         rec.fields = *ctx.input_fields;
-        rec.isEmpty = false;
 
-        int index = getIndexOfKey(table, *ctx.search_key);
+        auto key = (*ctx.input_fields)[0];
+        int index = getIndexOfKey(table, key);
         auto success = table->add(rec, index);
         if (ctx.operation_success) 
             *ctx.operation_success = success;
@@ -176,10 +181,10 @@ ftxui::Component ModalFactory::m_createEditForm(ITable* table, ModalFactory::Con
         if (!all_filled) return;
         Record rec;
         rec.fields = *ctx.input_fields;
-        rec.isEmpty = false;
 
-        int index = getIndexOfKey(table, *ctx.search_key);
-        bool success = table->modify(rec.fields, index);
+        auto key = (*ctx.input_fields)[0];
+        int index = table->indexOfRecord(key);
+        bool success = table->modify(rec, index);
         if (ctx.operation_success) *ctx.operation_success = success;
         if (ctx.feedback_message) *ctx.feedback_message = success ? "Отредактировано" : "Ошибка";
 
@@ -211,14 +216,14 @@ ftxui::Component ModalFactory::m_createDeleteForm(ITable* table, ModalFactory::C
     rows.push_back(ftxui::Button("Удалить", [table, ctx] {
         if (!ctx.search_key || ctx.search_key->empty()) return;
 
-        int index = getIndexOfKey(table, *ctx.search_key);
-        int indexToRemove = table->find(*ctx.search_key, index);
-        bool success = table->remove(*ctx.search_key, indexToRemove);
+        auto key = *ctx.search_key;
+        int index = table->indexOfRecord(key);
+        bool success = table->remove(key, index);
         if (ctx.operation_success) 
             *ctx.operation_success = success;
         if (ctx.feedback_message) 
             *ctx.feedback_message = success ? "Удалено" : "Не найдено";
-
+            
         if (success) 
             std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         
@@ -250,24 +255,27 @@ ftxui::Component ModalFactory::m_createFindForm(ITable* table, ModalFactory::Con
         if (!ctx.search_key || ctx.search_key->empty()) 
             return;
 
-        int index = getIndexOfKey(table, *ctx.search_key);
-        auto success = table->find(*ctx.search_key, index);
-        auto data = table->getData()[index];
-        if (ctx.operation_success)
-            *ctx.operation_success = success;
-
-        if (ctx.feedback_message) 
-        {
-            std::stringstream ss;
-            if(success)
-                ss << "Найдено: " << data.fields[1] << " " << data.fields[2];
-            else  
-                ss << "Не найдено";
-            *ctx.feedback_message = ss.str();
-        }
-
-        if (success) 
+        auto key = *ctx.search_key;
+        int index = table->indexOfRecord(key);
+        auto success = table->find(key, index);
+        if(success)
+        {     
+            auto data = table->getData()[index];
+            if (ctx.operation_success)
+                *ctx.operation_success = success;
+    
+            if (ctx.feedback_message) 
+            {
+                std::stringstream ss;
+                if(success)
+                    ss << "Найдено: " << data.fields[1] << " " << data.fields[2];
+                else  
+                    ss << "Не найдено";
+                *ctx.feedback_message = ss.str();
+            }
+    
             std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
+        }
     }));
     
     if (ctx.feedback_message) 
@@ -293,6 +301,26 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
                 ftxui::text("Коллизии: "),
                 ftxui::text(std::to_string(count)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta)
             }) | ftxui::center | ftxui::flex;
+        }
+        return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
+    });
+}
+
+ftxui::Component ModalFactory::m_createGraphView(ITable* table) 
+{
+    return ftxui::Renderer([table] {
+        auto hash_table = dynamic_cast<HashTable*>(table);
+        if (hash_table) 
+        {
+            int collisions = 10;
+            int count = hash_table->getData().size();
+            auto graph = ftxui::graph([&](int width, int height) {
+                std::vector<int> output;
+                output.push_back(collisions);
+                output.push_back(count);
+                return output;
+            });
+            return graph | ftxui::size(ftxui::WIDTH, ftxui::Constraint::EQUAL, 200) | ftxui::size(ftxui::HEIGHT, ftxui::Constraint::EQUAL, 200);
         }
         return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
     });

@@ -2,7 +2,7 @@
 #include <ftxui/component/component.hpp>
 #include <memory>
 
-class TableBase;
+class ITable;
 class Record;
 
 class App
@@ -21,8 +21,8 @@ private:
     bool m_operation_ok {};
     std::string m_feedback;
     
-    std::unique_ptr<TableBase> m_regularTable;
-    std::unique_ptr<TableBase> m_hashTable;
+    std::unique_ptr<ITable> m_regularTable;
+    std::unique_ptr<ITable> m_hashTable;
     
     int m_current_tab {};
 
