@@ -4,6 +4,7 @@ BidirectionalAssociativeMemory::BidirectionalAssociativeMemory()
 {
 }
 
-void BidirectionalAssociativeMemory::train()
+void BidirectionalAssociativeMemory::train(std::vector<std::vector<int>> data)
 {
+    
 }

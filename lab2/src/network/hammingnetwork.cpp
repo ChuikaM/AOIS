@@ -4,6 +4,6 @@ HammingNetwork::HammingNetwork()
 {
 }
 
-void HammingNetwork::train()
+void HammingNetwork::train(std::vector<std::vector<int>>)
 {
 }

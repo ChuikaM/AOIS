@@ -4,6 +4,6 @@ HopfieldNetwork::HopfieldNetwork()
 {
 }
 
-void HopfieldNetwork::train()
+void HopfieldNetwork::train(std::vector<std::vector<int>>)
 {
 }

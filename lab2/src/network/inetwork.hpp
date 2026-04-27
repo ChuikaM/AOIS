@@ -1,10 +1,11 @@
 #pragma once
+#include <vector>
 
 class INetwork {
 public:
     virtual ~INetwork() = default;
 
-    virtual void train() = 0;
+    virtual void train(std::vector<std::vector<int>> data) = 0;
     
 
 };

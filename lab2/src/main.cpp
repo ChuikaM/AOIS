@@ -32,6 +32,7 @@ int main()
 
     std::cout << "\nСеть Хопфилда:\n\n";
     auto hopfieldNetwork = std::make_unique<HopfieldNetwork>();
+    hopfieldNetwork->train(data);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);
@@ -44,6 +45,7 @@ int main()
 
     std::cout << "\nСеть Хэмминга:\n\n";
     auto hammingNetwork = std::make_unique<HammingNetwork>();
+    hammingNetwork->train(data);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);
@@ -54,6 +56,7 @@ int main()
 
     std::cout << "\nДвунаправленная ассоциативная память:\n\n";
     auto bidirectionalAssociativeMemory = std::make_unique<BidirectionalAssociativeMemory>();
+    bidirectionalAssociativeMemory->train(data);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);
