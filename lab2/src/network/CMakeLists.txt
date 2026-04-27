@@ -8,3 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 file(GLOB NETWORK_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${NETWORK_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    matrix
+)
