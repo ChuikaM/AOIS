@@ -1,6 +1,7 @@
 #pragma once
 #include <itable.hpp>
 #include <tableloader.hpp>
+#include <tablehelper.hpp>
 
 enum class ProbeMode { ADD, FIND, MODIFY, REMOVE };
 
@@ -29,6 +30,7 @@ public:
 private:
     int m_linear_probing(int index, const std::string& key, ProbeMode mode);
 
+    TableHelper m_tableHelper;
     TableContent m_tableContent;
     const int N;
     int m_recordsCount {};

@@ -2,6 +2,7 @@
 #include <itable.hpp>
 #include <tableloader.hpp>
 #include <tabledata.hpp>
+#include <tablehelper.hpp>
 
 class RegularTable : public ITable
 {
@@ -22,6 +23,8 @@ public:
     std::vector<std::string> getTitles() const override;
 
 private:
+    TableHelper m_tableHelper;
+
     const int N;
     int m_recordsCount {};
     TableContent m_tableContent;

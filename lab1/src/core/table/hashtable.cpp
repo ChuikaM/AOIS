@@ -1,11 +1,11 @@
 #include <hashtable.hpp>
-#include <tablehelper.hpp>
 #include <iostream>
 #include <limits>
 #include <algorithm>
 
 HashTable::HashTable(int size)
-    : N(size)
+    : N(size),
+    m_tableHelper(m_tableContent, size)
 {
     m_tableContent.records.reserve(N);
     m_tableContent.records.resize(N);
@@ -44,13 +44,13 @@ int HashTable::hashFunction(const std::string &key)
 
 bool HashTable::add(const Record& rec, int index)
 {
-    if(!TableHelper::canAdd(m_recordsCount, N))
+    if(!m_tableHelper.canAdd(m_recordsCount))
         return false;
 
-    if(!TableHelper::recordEmptyAt(m_tableContent, index, N))
+    if(!m_tableHelper.recordEmptyAt(index))
         index = m_linear_probing(index, rec.fields[0], ProbeMode::ADD);
 
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return false;
     
     m_tableContent.records[index] = rec;
@@ -60,7 +60,7 @@ bool HashTable::add(const Record& rec, int index)
 
 TableResult HashTable::find(const std::string& key, int index)
 {
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return {{}, false};
     
     index = m_linear_probing(index, key, ProbeMode::FIND);
@@ -70,11 +70,11 @@ TableResult HashTable::find(const std::string& key, int index)
 
 bool HashTable::modify(const Record& record, int index)
 {
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return false;
 
     index = m_linear_probing(index, record.fields[0], ProbeMode::MODIFY);
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return false;
 
     m_tableContent.records[index] = record;
@@ -83,13 +83,13 @@ bool HashTable::modify(const Record& record, int index)
 
 bool HashTable::remove(const std::string &key, int index)
 {
-    if(!TableHelper::canRemove(m_recordsCount)) 
+    if(!m_tableHelper.canRemove(m_recordsCount)) 
         return false;
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return false;
 
     index = m_linear_probing(index, key, ProbeMode::REMOVE);
-    if(!TableHelper::indexValid(index, N)) 
+    if(!m_tableHelper.indexValid(index)) 
         return false;
 
     m_tableContent.records[index] = {};
@@ -129,17 +129,17 @@ int HashTable::m_linear_probing(int index, const std::string& key, ProbeMode mod
         switch (mode)
         {
             case ProbeMode::ADD:
-                if (TableHelper::recordEmptyAt(m_tableContent, index, N)) {
+                if (m_tableHelper.recordEmptyAt(index)) {
                     return index;
                 }
-                if (TableHelper::recordExistsAt(m_tableContent, key, index, N)) {
+                if (m_tableHelper.recordExistsAt(key, index)) {
                     return -1;
                 }
                 break;
             case ProbeMode::FIND:
             case ProbeMode::REMOVE:
             case ProbeMode::MODIFY:
-                if (TableHelper::recordExistsAt(m_tableContent, key, index, N)) {
+                if (m_tableHelper.recordExistsAt(key, index)) {
                     return index;
                 }
                 break;
