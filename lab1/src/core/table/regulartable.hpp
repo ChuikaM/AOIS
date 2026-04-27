@@ -15,7 +15,7 @@ public:
     bool modify(const Record& record, int index) override;
     bool add(const Record& rec, int index) override;
     bool remove(const std::string& key, int index) override;
-    bool find(const std::string& key, int index) override;
+    TableResult find(const std::string& key, int index) override;
 
     int indexOfRecord(const std::string& key) override;
 

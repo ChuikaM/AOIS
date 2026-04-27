@@ -254,17 +254,17 @@ ftxui::Component ModalFactory::m_createFindForm(ITable* table, ModalFactory::Con
 
         auto key = *ctx.search_key;
         int index = table->indexOfRecord(key);
-        auto success = table->find(key, index);
-        if(success)
+        auto result = table->find(key, index);
+        if(result.result)
         {     
-            auto data = table->getData()[index];
+            auto data = result.record;
             if (ctx.operation_success)
-                *ctx.operation_success = success;
+                *ctx.operation_success = result.result;
     
             if (ctx.feedback_message) 
             {
                 std::stringstream ss;
-                if(success)
+                if(result.result)
                     ss << "Найдено: " << data.fields[1] << " " << data.fields[2];
                 else  
                     ss << "Не найдено";
@@ -293,9 +293,13 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
     return ftxui::Renderer([table] {
         auto hash_table = dynamic_cast<HashTable*>(table);
         if (hash_table) {
-            int count = hash_table->getTotalCollisions();
+            int collisions = hash_table->getTotalCollisions();
+            int count = hash_table->getData().size();
             return ftxui::hbox({
                 ftxui::text("Коллизии: "),
+                ftxui::text(std::to_string(collisions)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta),
+                ftxui::separator(),
+                ftxui::text("Кол-во записей: "),
                 ftxui::text(std::to_string(count)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta)
             }) | ftxui::center | ftxui::flex;
         }
@@ -306,18 +310,24 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
 ftxui::Component ModalFactory::m_createGraphView(ITable* table) 
 {
     return ftxui::Renderer([table] {
-        auto hash_table = dynamic_cast<HashTable*>(table);
-        if (hash_table) 
+        auto hashTable = dynamic_cast<HashTable*>(table);
+        if (hashTable) 
         {
-            int collisions = 10;
-            int count = hash_table->getData().size();
-            auto graph = ftxui::graph([&](int width, int height) {
-                std::vector<int> output;
-                output.push_back(collisions);
-                output.push_back(count);
-                return output;
-            });
-            return graph | ftxui::size(ftxui::WIDTH, ftxui::Constraint::EQUAL, 200) | ftxui::size(ftxui::HEIGHT, ftxui::Constraint::EQUAL, 200);
+            int collisions = hashTable->getTotalCollisions();
+            int count = hashTable->getData().size();
+            auto c = ftxui::Canvas(count, 100);
+            std::vector<int> output(count);
+            for (int x = 0; x < count; x++) {
+                output[x] = collisions / count * x;
+            }
+            int canvas_y;
+            int canvas_y_next;
+            for (int x = 1; x < 99; x++) {
+                canvas_y = 99 - output[x];
+                canvas_y_next = 99 - output[x + 1];
+                c.DrawPointLine(x, canvas_y, x + 1, canvas_y_next);
+            }
+            return ftxui::canvas(std::move(c)) | ftxui::center;;
         }
         return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
     });

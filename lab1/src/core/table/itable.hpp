@@ -12,7 +12,7 @@ public:
     virtual bool modify(const Record& record, int index) = 0;
     virtual bool add(const Record& record, int index) = 0;
     virtual bool remove(const std::string& key, int index) = 0;
-    virtual bool find(const std::string& key, int index) = 0;
+    virtual TableResult find(const std::string& key, int index) = 0;
     
     virtual int indexOfRecord(const std::string& key) = 0;
 

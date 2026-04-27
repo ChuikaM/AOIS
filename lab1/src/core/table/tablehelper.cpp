@@ -26,7 +26,7 @@ bool TableHelper::recordEmptyAt(TableContent content, int index, int max)
 
 bool TableHelper::recordExistsAt(TableContent content, const std::string &key, int index, int max)
 {
-    if(!indexValid(index, max)) 
+    if(!indexValid(index, max))
         return false;
 
     auto tableRecords = content.records;

@@ -49,7 +49,7 @@ bool HashTable::add(const Record& rec, int index) // Ok
         return false;
 
     if(!TableHelper::recordEmptyAt(m_tableContent, index, N))
-        index = m_linear_probing(index);
+        index = m_linear_probing_for_adding(index, rec.fields[0]);
 
     if(!TableHelper::indexValid(index, N)) 
         return false;
@@ -59,16 +59,14 @@ bool HashTable::add(const Record& rec, int index) // Ok
     return true;
 }
 
-bool HashTable::find(const std::string& key, int index)
+TableResult HashTable::find(const std::string& key, int index)
 {
     if(!TableHelper::indexValid(index, N)) 
-        return false;
+        return {{}, false};
     
-    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N) && index != -1)
-    {
-        index = m_linear_probing(index);
-    }
-    return index != -1; // Неправильно проверет на сущестование эдемента с ключом
+    index = m_linear_probing(index, key);
+    
+    return { m_tableContent.records[index], index != -1 };
 }
 
 bool HashTable::modify(const Record& record, int index)
@@ -76,10 +74,7 @@ bool HashTable::modify(const Record& record, int index)
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    while(!TableHelper::recordExistsAt(m_tableContent, record.fields[0], index, N) && index != -1)
-    {
-        index = m_linear_probing(index);
-    }
+    index = m_linear_probing(index, record.fields[0]);
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -94,10 +89,7 @@ bool HashTable::remove(const std::string &key, int index)
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N) && index != -1)
-    {
-        index = m_linear_probing(index);
-    }
+    index = m_linear_probing(index, key);
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -125,11 +117,25 @@ int HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
-int HashTable::m_linear_probing(int index)
+int HashTable::m_linear_probing_for_adding(int index, const std::string& key)
 {
     int startIndex = index;
     index = (index + 1) % N;
     while(!TableHelper::recordEmptyAt(m_tableContent, index, N)) {
+        index = (index + 1) % N;
+        if(startIndex == index || TableHelper::recordExistsAt(m_tableContent, key, index, N))
+            return -1;
+
+        ++m_totalCollisions;
+    }
+    return index;
+}
+
+int HashTable::m_linear_probing(int index, const std::string& key)
+{
+    int startIndex = index;
+    index = (index + 1) % N;
+    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N)) {
         index = (index + 1) % N;
         if(startIndex == index)
             return -1;

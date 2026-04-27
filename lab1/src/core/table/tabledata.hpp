@@ -30,3 +30,10 @@ struct TableContent {
     std::vector<std::string> titles;
 
 };
+
+
+struct TableResult {
+    Record record;
+    bool result;
+
+};

@@ -57,11 +57,11 @@ bool RegularTable::remove(const std::string &key, int index)
     return true;
 }
 
-bool RegularTable::find(const std::string& key, int index)
+TableResult RegularTable::find(const std::string& key, int index)
 {
-    if(!TableHelper::indexValid(index, N)) return false;
+    if(!TableHelper::indexValid(index, N)) return {{}, false};
 
-    return m_tableContent.records[index].fields[0] == key;
+    return { m_tableContent.records[index], m_tableContent.records[index].fields[0] == key };
 }
 
 int RegularTable::indexOfRecord(const std::string &key)

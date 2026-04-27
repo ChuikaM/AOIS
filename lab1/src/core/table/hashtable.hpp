@@ -14,7 +14,7 @@ public:
     int hashFunction(const std::string &key);
 
     bool add(const Record& rec, int index) override;
-    bool find(const std::string& key, int index) override;
+    TableResult find(const std::string& key, int index) override;
     bool modify(const Record& record, int index) override;
     bool remove(const std::string& key, int index) override;
     
@@ -26,7 +26,8 @@ public:
     int getTotalCollisions() const;
 
 private:
-    int m_linear_probing(int index);
+    int m_linear_probing_for_adding(int index, const std::string& key);
+    int m_linear_probing(int index, const std::string& key);
 
     TableContent m_tableContent;
     const int N;
