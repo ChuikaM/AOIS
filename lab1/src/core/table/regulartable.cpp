@@ -31,6 +31,7 @@ bool RegularTable::modify(const Record& record, int index)
 
 bool RegularTable::add(const Record &rec, int index)
 {
+    if (!TableHelper::indexValid(index, N)) return false;
     if(!TableHelper::canAdd(m_recordsCount, N)) return false;
 
     m_tableContent.records[index] = rec;

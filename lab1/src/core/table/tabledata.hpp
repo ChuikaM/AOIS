@@ -14,13 +14,13 @@ struct Record {
         this->fields = fields;
     }
 
-    bool operator==(const Record& record) 
+    bool operator==(const Record& other) const
     {
-        return fields == record.fields;
+        return fields == other.fields;
     }
-    bool operator!=(const Record& record) 
+    bool operator!=(const Record& other) const
     {
-        return !(*this == record);
+        return !(*this == other);
     }
 
 };
