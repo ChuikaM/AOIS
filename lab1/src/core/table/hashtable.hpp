@@ -2,10 +2,11 @@
 #include <itable.hpp>
 #include <tableloader.hpp>
 
+enum class ProbeMode { ADD, FIND, MODIFY, REMOVE };
+
 class HashTable : public ITable
 {
 public:
-
     explicit HashTable(int size);
     ~HashTable() override = default;
 
@@ -18,7 +19,7 @@ public:
     bool modify(const Record& record, int index) override;
     bool remove(const std::string& key, int index) override;
     
-    int indexOfRecord(const std::string& key) override;
+    int indexOfRecord(const std::string& key, RecordMethod method) override;
 
     std::vector<Record> getData() const override;
     std::vector<std::string> getTitles() const override;
@@ -26,8 +27,7 @@ public:
     int getTotalCollisions() const;
 
 private:
-    int m_linear_probing_for_adding(int index, const std::string& key);
-    int m_linear_probing(int index, const std::string& key);
+    int m_linear_probing(int index, const std::string& key, ProbeMode mode);
 
     TableContent m_tableContent;
     const int N;

@@ -33,8 +33,6 @@ void App::Run()
     ModalFactory::Context ctx;
     ctx.input_fields = &m_form_inputs;
     ctx.search_key = &m_search_key;
-    ctx.result_record = m_found_record.get();
-    ctx.result_index = &m_found_index;
     ctx.operation_success = &m_operation_ok;
     ctx.feedback_message = &m_feedback;
 
@@ -72,7 +70,6 @@ void App::Run()
             ftxui::text(m_current_tab == 0 ? "Enter: Выбор" : "Enter: Выбор | Esc: Назад") | ftxui::dim | ftxui::center,
         }) | ftxui::border | ftxui::flex;
     });
-
     renderer |= ftxui::CatchEvent([&](ftxui::Event e) {
         if (e == ftxui::Event::Escape) {
             if(m_current_tab == 1 || m_current_tab == 2)

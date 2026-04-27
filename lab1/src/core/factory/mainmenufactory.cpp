@@ -10,22 +10,10 @@ ftxui::Component MainMenuFactory::create(OptionType optionType, int& m_current_t
 {
     switch (optionType)
     {
-        case OptionType::MainMenu:
-            return m_prepareMainMenu(m_current_tab);
-            break;
-
-        case OptionType::RegularTableMenu:
-            return m_prepareRegularTableMenu(m_current_tab);
-            break;
-
-        case OptionType::HashTableMenu:
-            return m_prepareHashTableMenu(m_current_tab);
-            break;
-            
-        default:
-            return ftxui::Renderer([] { 
-                return ftxui::text("Неизвестное действие") | ftxui::dim; 
-            });
+        case OptionType::MainMenu:         return m_prepareMainMenu(m_current_tab);
+        case OptionType::RegularTableMenu: return m_prepareRegularTableMenu(m_current_tab);
+        case OptionType::HashTableMenu:    return m_prepareHashTableMenu(m_current_tab);
+        default:                           return ftxui::Renderer([] {  return ftxui::text("Неизвестное действие") | ftxui::dim; });
     }
 }
 

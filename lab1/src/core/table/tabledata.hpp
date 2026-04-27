@@ -14,23 +14,22 @@ struct Record {
         this->fields = fields;
     }
 
-    bool operator!=(const Record& record) 
-    {
-        return fields != record.fields;
-    }
     bool operator==(const Record& record) 
     {
         return fields == record.fields;
     }
-};
+    bool operator!=(const Record& record) 
+    {
+        return !(*this == record);
+    }
 
+};
 
 struct TableContent {
     std::vector<Record> records;
     std::vector<std::string> titles;
 
 };
-
 
 struct TableResult {
     Record record;

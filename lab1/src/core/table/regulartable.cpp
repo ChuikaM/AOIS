@@ -21,15 +21,6 @@ void RegularTable::loadTable(const std::string &filepath)
     m_tableContent.titles = loadedContent.titles;
 }
 
-int RegularTable::indexOfFreeRecord() const
-{
-    auto tableRecords = m_tableContent.records;
-    auto iter = std::find(tableRecords.begin(), tableRecords.end(), Record());
-    if(iter == tableRecords.end()) 
-        return -1;
-    return std::distance(tableRecords.begin(), iter);
-}
-
 bool RegularTable::modify(const Record& record, int index)
 {
     if(!TableHelper::indexValid(index, N)) return false;
@@ -64,13 +55,29 @@ TableResult RegularTable::find(const std::string& key, int index)
     return { m_tableContent.records[index], m_tableContent.records[index].fields[0] == key };
 }
 
-int RegularTable::indexOfRecord(const std::string &key)
+int RegularTable::indexOfRecord(const std::string &key, RecordMethod method)
 {
-    auto tableRecords = m_tableContent.records;
-    auto iter = std::find_if(tableRecords.begin(), tableRecords.end(), [key](const Record& record){ return record.fields[0] == key; });
-    if(iter == tableRecords.end()) 
-        return -1;
-    return std::distance(tableRecords.begin(), iter);
+    switch (method)
+    {
+        case RecordMethod::FREE_RECORD:
+        {
+            auto tableRecords = m_tableContent.records;
+            auto iter = std::find(tableRecords.begin(), tableRecords.end(), Record());
+            if(iter == tableRecords.end()) 
+                return -1;
+            return std::distance(tableRecords.begin(), iter);
+        }
+        case RecordMethod::INDEX_RECORD:
+        {
+            auto tableRecords = m_tableContent.records;
+            auto iter = std::find_if(tableRecords.begin(), tableRecords.end(), [key](const Record& record){ return record.fields[0] == key; });
+            if(iter == tableRecords.end()) 
+                return -1;
+            return std::distance(tableRecords.begin(), iter);
+        }
+    }
+
+    return -1;
 }
 
 std::vector<Record> RegularTable::getData() const
