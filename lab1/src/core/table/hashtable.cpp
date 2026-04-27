@@ -43,7 +43,7 @@ int HashTable::hashFunction(const std::string &key)
     return *iter;
 }
 
-bool HashTable::add(const Record& rec, int index)
+bool HashTable::add(const Record& rec, int index) // Ok
 {
     if(!TableHelper::canAdd(m_recordsCount, N))
         return false;

@@ -223,9 +223,6 @@ ftxui::Component ModalFactory::m_createDeleteForm(ITable* table, ModalFactory::C
             *ctx.operation_success = success;
         if (ctx.feedback_message) 
             *ctx.feedback_message = success ? "Удалено" : "Не найдено";
-            
-        if (success) 
-            std::fill(ctx.input_fields->begin(), ctx.input_fields->end(), "");
         
     }));
     

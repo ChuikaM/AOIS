@@ -50,9 +50,9 @@ bool RegularTable::add(const Record &rec, int index)
 bool RegularTable::remove(const std::string &key, int index)
 {
     if(!TableHelper::canRemove(m_recordsCount)) return false;
-    if(!TableHelper::indexValid(index, N)) return false;
+    if(!TableHelper::recordExistsAt(m_tableContent, key, index, N)) return false;
 
-    m_tableContent.records.erase(m_tableContent.records.begin() + index);
+    m_tableContent.records[index] = Record();
     m_recordsCount--;
     return true;
 }

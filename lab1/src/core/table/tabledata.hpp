@@ -4,6 +4,16 @@
 struct Record {
     std::vector<std::string> fields;
     
+    Record()
+    {
+        fields.reserve(3);
+        fields.resize(3);
+    }
+    Record(std::vector<std::string> fields)
+    {
+        this->fields = fields;
+    }
+
     bool operator!=(const Record& record) 
     {
         return fields != record.fields;
