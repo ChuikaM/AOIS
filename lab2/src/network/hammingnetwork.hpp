@@ -6,10 +6,11 @@ class HammingNetwork : public INetwork {
 public:
     explicit HammingNetwork();
 
-    void train(std::vector<std::vector<int>>) override;
+    void train(const Matrix<float>& trainData) override;
+
+    Matrix<float> sync(const Matrix<float>& data);
 
 private:
-    std::vector<std::vector<int>> m_w;
-
-
+    Matrix<float> m_w;
+    float t {};
 };

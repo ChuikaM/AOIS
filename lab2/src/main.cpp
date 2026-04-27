@@ -7,18 +7,21 @@
 #include <algorithm>
 #include <format>
 
+#include <matrix.h>
+
 int main()
 {
     const int n = 13;
     const int m = 13;
-    std::vector<std::vector<int>> data = {
+    std::vector<std::vector<float>> data = {
         {1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1},
         {1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1},
         {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
         {0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0}
     };
+    Matrix<float> trainData(data);
 
-    auto printSourceVectors = [](std::vector<std::vector<int>> data){
+    auto printSourceVectors = [](std::vector<std::vector<float>> data){
         int i = 1;
         for(const auto row : data)
         {
@@ -32,7 +35,7 @@ int main()
 
     std::cout << "\nСеть Хопфилда:\n\n";
     auto hopfieldNetwork = std::make_unique<HopfieldNetwork>();
-    hopfieldNetwork->train(data);
+    hopfieldNetwork->train(trainData);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);
@@ -45,7 +48,7 @@ int main()
 
     std::cout << "\nСеть Хэмминга:\n\n";
     auto hammingNetwork = std::make_unique<HammingNetwork>();
-    hammingNetwork->train(data);
+    hammingNetwork->train(trainData);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);
@@ -56,7 +59,7 @@ int main()
 
     std::cout << "\nДвунаправленная ассоциативная память:\n\n";
     auto bidirectionalAssociativeMemory = std::make_unique<BidirectionalAssociativeMemory>();
-    bidirectionalAssociativeMemory->train(data);
+    bidirectionalAssociativeMemory->train(trainData);
 
     std::cout << "1. Source vectors:" << std::endl;
     printSourceVectors(data);

@@ -1,11 +1,10 @@
 #pragma once
-#include <vector>
+#include <matrix.h>
 
 class INetwork {
 public:
     virtual ~INetwork() = default;
 
-    virtual void train(std::vector<std::vector<int>> data) = 0;
-    
+    virtual void train(const Matrix<float>& trainData) = 0;
 
 };

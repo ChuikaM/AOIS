@@ -6,9 +6,9 @@ class BidirectionalAssociativeMemory : public INetwork {
 public:
     explicit BidirectionalAssociativeMemory();
 
-    void train(std::vector<std::vector<int>> data) override;
+    void train(const Matrix<float>& trainData) override;
     
 private:
-    std::vector<int> m_w;
+    std::vector<float> m_w;
 
 };

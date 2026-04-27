@@ -4,7 +4,8 @@ BidirectionalAssociativeMemory::BidirectionalAssociativeMemory()
 {
 }
 
-void BidirectionalAssociativeMemory::train(std::vector<std::vector<int>> data)
+void BidirectionalAssociativeMemory::train(const Matrix<float>& trainData)
 {
+    m_w.resize(trainData.column(), trainData.row());
     
 }
