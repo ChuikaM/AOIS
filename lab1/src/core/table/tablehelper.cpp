@@ -1,13 +1,18 @@
 #include "tablehelper.hpp"
 
-bool TableHelper::indexValid(int index, int max)
+TableHelper::TableHelper(const TableContent &content, int size)
+    : m_tableContent(content)
+    , m_max(size)
+{}
+
+bool TableHelper::indexValid(int index)
 {
-    return index >= 0 && index < max;
+    return index >= 0 && index < m_max;
 }
 
-bool TableHelper::canAdd(int recordCount, int max)
+bool TableHelper::canAdd(int recordCount)
 {
-    return recordCount < max;
+    return recordCount < m_max;
 }
 
 bool TableHelper::canRemove(int recordCount)
@@ -15,20 +20,20 @@ bool TableHelper::canRemove(int recordCount)
     return recordCount >= 0;
 }
 
-bool TableHelper::recordEmptyAt(TableContent content, int index, int max)
+bool TableHelper::recordEmptyAt(int index)
 {
-    if(!indexValid(index, max)) 
+    if(!indexValid(index)) 
         return false;
 
-    auto tableRecords = content.records;
+    auto tableRecords = m_tableContent.records;
     return tableRecords[index] == Record();
 }
 
-bool TableHelper::recordExistsAt(TableContent content, const std::string &key, int index, int max)
+bool TableHelper::recordExistsAt(const std::string &key, int index)
 {
-    if(!indexValid(index, max))
+    if(!indexValid(index))
         return false;
 
-    auto tableRecords = content.records;
+    auto tableRecords = m_tableContent.records;
     return tableRecords[index].fields[0] == key;
 }

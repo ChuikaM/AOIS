@@ -1,10 +1,10 @@
 #include <regulartable.hpp>
 #include <tableloader.hpp>
-#include <tablehelper.hpp>
 #include <algorithm>
 
 RegularTable::RegularTable(int size)
     : N(size)
+    , m_tableHelper(m_tableContent, size)
 {
     m_tableContent.records.reserve(N);
     m_tableContent.records.resize(N);
@@ -23,7 +23,7 @@ void RegularTable::loadTable(const std::string &filepath)
 
 bool RegularTable::modify(const Record& record, int index)
 {
-    if(!TableHelper::indexValid(index, N)) return false;
+    if(!m_tableHelper.indexValid(index)) return false;
 
     m_tableContent.records[index] = record;
     return true;
@@ -31,8 +31,8 @@ bool RegularTable::modify(const Record& record, int index)
 
 bool RegularTable::add(const Record &rec, int index)
 {
-    if (!TableHelper::indexValid(index, N)) return false;
-    if(!TableHelper::canAdd(m_recordsCount, N)) return false;
+    if (!m_tableHelper.indexValid(index)) return false;
+    if(!m_tableHelper.canAdd(m_recordsCount)) return false;
 
     m_tableContent.records[index] = rec;
     m_recordsCount++;
@@ -41,8 +41,8 @@ bool RegularTable::add(const Record &rec, int index)
 
 bool RegularTable::remove(const std::string &key, int index)
 {
-    if(!TableHelper::canRemove(m_recordsCount)) return false;
-    if(!TableHelper::recordExistsAt(m_tableContent, key, index, N)) return false;
+    if(!m_tableHelper.canRemove(m_recordsCount)) return false;
+    if(!m_tableHelper.recordExistsAt(key, index)) return false;
 
     m_tableContent.records[index] = Record();
     m_recordsCount--;
@@ -51,7 +51,7 @@ bool RegularTable::remove(const std::string &key, int index)
 
 TableResult RegularTable::find(const std::string& key, int index)
 {
-    if(!TableHelper::indexValid(index, N)) return {{}, false};
+    if(!m_tableHelper.indexValid(index)) return {{}, false};
 
     return { m_tableContent.records[index], m_tableContent.records[index].fields[0] == key };
 }

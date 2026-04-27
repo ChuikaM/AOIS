@@ -3,13 +3,17 @@
 
 class TableHelper {
 public:
-    explicit TableHelper() = default;
+    explicit TableHelper(const TableContent& content, int max);
     ~TableHelper() = default;
 
-    static bool indexValid(int index, int max);
-    static bool canAdd(int recordCount, int max);
-    static bool canRemove(int recordCount);
-    static bool recordEmptyAt(TableContent content, int index, int max);
-    static bool recordExistsAt(TableContent content, const std::string& key, int index, int max);
+    bool indexValid(int index);
+    bool canAdd(int recordCount);
+    bool canRemove(int recordCount);
+    bool recordEmptyAt(int index);
+    bool recordExistsAt(const std::string& key, int index);
+
+private:
+    const TableContent& m_tableContent;
+    const int m_max;
 
 };
