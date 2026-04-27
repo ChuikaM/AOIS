@@ -32,7 +32,7 @@ int HashTable::hashFunction(const std::string &key)
         result = (result * static_cast<int>(c)) % max;
     }
     auto twoDigits = static_cast<int>(result % 100);
-    auto square = twoDigits * twoDigits;
+    auto square = twoDigits * twoDigits; // max 14 bits here : we can use programmer calc
     
     std::vector<int> possible_indexes {
         (square >> 1) & (N - 1),
