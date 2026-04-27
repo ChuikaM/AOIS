@@ -1,6 +1,8 @@
 #include <hashtable.hpp>
 #include <tablehelper.hpp>
-#include <bitset>
+#include <iostream>
+#include <limits>
+#include <algorithm>
 
 HashTable::HashTable(int size)
     : N(size)
@@ -23,18 +25,21 @@ void HashTable::loadTable(const std::string &filepath)
 
 int HashTable::hashFunction(const std::string &key)
 {
-    long long result = 1;
-    for (unsigned char c : key) {
-        result *= static_cast<int>(c);
+    unsigned long long result = 1;
+    auto max = std::numeric_limits<long long>::max();
+    for (unsigned char c : key) 
+    {
+        result = (result * static_cast<int>(c)) % max;
     }
-    int twoDigits = static_cast<int>(result % 100);
+    auto twoDigits = static_cast<int>(result % 100);
     auto square = twoDigits * twoDigits;
-
-    const int BITS = 6;
-    const int SHIFT = (64 - BITS) / 2;
-    int index = (square >> SHIFT) & ((1 << BITS) - 1);
     
-    return index;
+    std::vector<int> possible_indexes {
+        (square >> 1) & (N - 1),
+        (square >> 7) & (N - 1),
+        (square >> 4) & (N - 1)
+    };
+    return *(std::max_element(possible_indexes.begin(), possible_indexes.end()));
 }
 
 bool HashTable::add(const Record& rec, int index)
@@ -42,7 +47,9 @@ bool HashTable::add(const Record& rec, int index)
     if(!TableHelper::canAdd(m_recordsCount, N))
         return false;
 
-    index = m_linear_probing(index);
+    if(!TableHelper::recordEmptyAt(m_tableContent, index, N))
+        index = m_linear_probing(index, rec.fields[0], ProbeMode::ADD);
+
     if(!TableHelper::indexValid(index, N)) 
         return false;
     
@@ -51,16 +58,14 @@ bool HashTable::add(const Record& rec, int index)
     return true;
 }
 
-bool HashTable::find(const std::string& key, int index)
+TableResult HashTable::find(const std::string& key, int index)
 {
     if(!TableHelper::indexValid(index, N)) 
-        return false;
+        return {{}, false};
     
-    while(!TableHelper::recordExistsAt(m_tableContent, key, index, N) && index != -1)
-    {
-        index = m_linear_probing(index);
-    }
-    return index != -1; // Неправильно проверет на сущестование эдемента с ключом
+    index = m_linear_probing(index, key, ProbeMode::FIND);
+    
+    return { m_tableContent.records[index], index != -1 };
 }
 
 bool HashTable::modify(const Record& record, int index)
@@ -68,7 +73,7 @@ bool HashTable::modify(const Record& record, int index)
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    index = m_linear_probing(index);
+    index = m_linear_probing(index, record.fields[0], ProbeMode::MODIFY);
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -78,10 +83,12 @@ bool HashTable::modify(const Record& record, int index)
 
 bool HashTable::remove(const std::string &key, int index)
 {
+    if(!TableHelper::canRemove(m_recordsCount)) 
+        return false;
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
-    index = m_linear_probing(index);
+    index = m_linear_probing(index, key, ProbeMode::REMOVE);
     if(!TableHelper::indexValid(index, N)) 
         return false;
 
@@ -90,9 +97,15 @@ bool HashTable::remove(const std::string &key, int index)
     return true;
 }
 
-int HashTable::indexOfRecord(const std::string &key)
+int HashTable::indexOfRecord(const std::string &key, RecordMethod method)
 {
-    return hashFunction(key);
+    switch (method)
+    {
+        case RecordMethod::FREE_RECORD:
+        case RecordMethod::INDEX_RECORD: 
+            return hashFunction(key);
+    }
+    return -1;
 }
 
 std::vector<Record> HashTable::getData() const
@@ -109,15 +122,32 @@ int HashTable::getTotalCollisions() const
     return m_totalCollisions;
 }
 
-int HashTable::m_linear_probing(int index)
+int HashTable::m_linear_probing(int index, const std::string& key, ProbeMode mode)
 {
     int startIndex = index;
-    while(!TableHelper::recordEmptyAt(m_tableContent, index, N)) {
-        index = (index + 1) % N;
-        if(startIndex == index)
-            return -1;
+    do {
+        switch (mode)
+        {
+            case ProbeMode::ADD:
+                if (TableHelper::recordEmptyAt(m_tableContent, index, N)) {
+                    return index;
+                }
+                if (TableHelper::recordExistsAt(m_tableContent, key, index, N)) {
+                    return -1;
+                }
+                break;
+            case ProbeMode::FIND:
+            case ProbeMode::REMOVE:
+            case ProbeMode::MODIFY:
+                if (TableHelper::recordExistsAt(m_tableContent, key, index, N)) {
+                    return index;
+                }
+                break;
+        }
 
+        index = (index + 1) % N;
         ++m_totalCollisions;
-    }
-    return index;
+    } while (index != startIndex);
+
+    return -1;
 }

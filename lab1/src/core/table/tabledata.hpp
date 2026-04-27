@@ -4,19 +4,35 @@
 struct Record {
     std::vector<std::string> fields;
     
-    bool operator!=(const Record& record) 
+    Record()
     {
-        return fields != record.fields;
+        fields.reserve(3);
+        fields.resize(3);
     }
-    bool operator==(const Record& record) 
+    Record(std::vector<std::string> fields)
     {
-        return fields == record.fields;
+        this->fields = fields;
     }
-};
 
+    bool operator==(const Record& other) const
+    {
+        return fields == other.fields;
+    }
+    bool operator!=(const Record& other) const
+    {
+        return !(*this == other);
+    }
+
+};
 
 struct TableContent {
     std::vector<Record> records;
     std::vector<std::string> titles;
+
+};
+
+struct TableResult {
+    Record record;
+    bool result;
 
 };
