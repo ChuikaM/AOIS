@@ -13,7 +13,7 @@ public:
     void loadTable(const std::string& filepath) override;
 
     bool modify(const Record& record, int index) override;
-    bool add(const Record& rec, int index) override;
+    bool add(const Record& record, int index) override;
     bool remove(const std::string& key, int index) override;
     TableResult find(const std::string& key, int index) override;
 

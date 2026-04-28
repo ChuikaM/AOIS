@@ -29,12 +29,12 @@ bool RegularTable::modify(const Record& record, int index)
     return true;
 }
 
-bool RegularTable::add(const Record &rec, int index)
+bool RegularTable::add(const Record &record, int index)
 {
     if (!m_tableHelper.indexValid(index)) return false;
     if(!m_tableHelper.canAdd(m_recordsCount)) return false;
 
-    m_tableContent.records[index] = rec;
+    m_tableContent.records[index] = record;
     m_recordsCount++;
     return true;
 }

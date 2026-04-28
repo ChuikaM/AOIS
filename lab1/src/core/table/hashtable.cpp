@@ -43,20 +43,21 @@ int HashTable::hashFunction(const std::string &key)
     return *(std::max_element(possible_indexes.begin(), possible_indexes.end()));
 }
 
-bool HashTable::add(const Record& rec, int index)
+bool HashTable::add(const Record& record, int index)
 {
+    auto key = record.fields[0];
     if(!m_tableHelper.indexValid(index))
         return false;
     if(!m_tableHelper.canAdd(m_recordsCount))
         return false;
 
     if(hasCollisionAt(index))
-        index = linearProbing(index, rec.fields[0], ProbeMode::ADD);
+        index = linearProbing(index, key, ProbeMode::ADD);
 
     if(!m_tableHelper.indexValid(index)) 
         return false;
     
-    m_tableContent.records[index] = rec;
+    m_tableContent.records[index] = record;
     m_recordsCount++;
     return true;
 }
@@ -77,15 +78,16 @@ TableResult HashTable::find(const std::string& key, int index)
 
 bool HashTable::modify(const Record& record, int index)
 {
+    auto key = record.fields[0];
     if(!m_tableHelper.indexValid(index)) 
         return false;
 
     if(hasCollisionAt(index))
-        index = linearProbing(index, record.fields[0], ProbeMode::MODIFY);
+        index = linearProbing(index, key, ProbeMode::MODIFY);
 
     if(!m_tableHelper.indexValid(index)) 
         return false;
-    if(!m_tableHelper.recordExistsAt(record.fields[0], index))
+    if(!m_tableHelper.recordExistsAt(key, index))
         return false;
 
     m_tableContent.records[index] = record;
