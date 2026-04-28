@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 
-enum TableType {
+enum class TableType : unsigned short {
     Regular,
     Hash
 };
 
-enum ModalAction {
+enum class ModalAction : unsigned short {
     Print,
     Add,
     Edit,

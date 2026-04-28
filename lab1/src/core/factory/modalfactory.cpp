@@ -73,13 +73,13 @@ ftxui::Component ModalFactory::m_createPrintView(ITable* table, ftxui::Color hea
         std::vector<ftxui::Element> tables;
         tables.reserve(4);
 
-        for (int chunk = 0; chunk < 4; ++chunk) {
+        for (size_t chunk = 0; chunk < 4; ++chunk) {
             std::vector<std::vector<std::string>> chunk_entries;
             chunk_entries.push_back(titles);
             
             int start = chunk * rows_per_table;
             int end = std::min(start + rows_per_table, static_cast<int>(entries.size()));
-            for (int i = start; i < end; ++i) chunk_entries.push_back(entries[i]);
+            for (size_t i = start; i < end; ++i) chunk_entries.push_back(entries[i]);
 
             auto t = ftxui::Table(chunk_entries);
             t.SelectAll().Border(ftxui::LIGHT);
@@ -212,7 +212,7 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
         auto* ht = dynamic_cast<HashTable*>(table);
         if (!ht) return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
 
-        auto collisions = ht->getTotalCollisions();
+        auto collisions = ht->showStatistics();
         auto count = ht->getData().size();
         return ftxui::hbox({
             ftxui::text("Коллизии: "),
@@ -230,14 +230,14 @@ ftxui::Component ModalFactory::m_createGraphView(ITable* table)
         auto* ht = dynamic_cast<HashTable*>(table);
         if (!ht) return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
 
-        auto collisions = ht->getTotalCollisions();
+        auto collisions = ht->showStatistics();
         auto count = ht->getData().size();
         if (count == 0) return ftxui::text("Нет данных") | ftxui::dim | ftxui::center;
 
         ftxui::Canvas c(count, collisions);
         float slope = static_cast<float>(collisions) / count;
         
-        for (int x = 0; x < count - 1; ++x) {
+        for (size_t x = 0; x < count - 1; ++x) {
             int y1 = collisions - 1 - static_cast<int>(slope * x);
             int y2 = collisions - 1 - static_cast<int>(slope * (x + 1));
             c.DrawPointLine(x, y1, x + 1, y2);

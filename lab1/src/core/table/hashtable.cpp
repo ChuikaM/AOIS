@@ -2,6 +2,7 @@
 #include <iostream>
 #include <limits>
 #include <algorithm>
+#include <set>
 
 HashTable::HashTable(int size)
     : N(size),
@@ -44,11 +45,13 @@ int HashTable::hashFunction(const std::string &key)
 
 bool HashTable::add(const Record& rec, int index)
 {
+    if(!m_tableHelper.indexValid(index))
+        return false;
     if(!m_tableHelper.canAdd(m_recordsCount))
         return false;
 
-    if(!m_tableHelper.recordEmptyAt(index))
-        index = m_linear_probing(index, rec.fields[0], ProbeMode::ADD);
+    if(hasCollisionAt(index))
+        index = linearProbing(index, rec.fields[0], ProbeMode::ADD);
 
     if(!m_tableHelper.indexValid(index)) 
         return false;
@@ -63,9 +66,13 @@ TableResult HashTable::find(const std::string& key, int index)
     if(!m_tableHelper.indexValid(index)) 
         return {{}, false};
     
-    index = m_linear_probing(index, key, ProbeMode::FIND);
+    if(hasCollisionAt(index))
+        index = linearProbing(index, key, ProbeMode::FIND);
     
-    return { m_tableContent.records[index], index != -1 };
+    if(!m_tableHelper.indexValid(index)) 
+        return {{}, false};
+
+    return { m_tableContent.records[index], m_tableHelper.recordExistsAt(key, index) };
 }
 
 bool HashTable::modify(const Record& record, int index)
@@ -73,8 +80,12 @@ bool HashTable::modify(const Record& record, int index)
     if(!m_tableHelper.indexValid(index)) 
         return false;
 
-    index = m_linear_probing(index, record.fields[0], ProbeMode::MODIFY);
+    if(hasCollisionAt(index))
+        index = linearProbing(index, record.fields[0], ProbeMode::MODIFY);
+
     if(!m_tableHelper.indexValid(index)) 
+        return false;
+    if(!m_tableHelper.recordExistsAt(record.fields[0], index))
         return false;
 
     m_tableContent.records[index] = record;
@@ -88,8 +99,12 @@ bool HashTable::remove(const std::string &key, int index)
     if(!m_tableHelper.indexValid(index)) 
         return false;
 
-    index = m_linear_probing(index, key, ProbeMode::REMOVE);
+    if(hasCollisionAt(index))
+        index = linearProbing(index, key, ProbeMode::REMOVE);
+
     if(!m_tableHelper.indexValid(index)) 
+        return false;
+    if(!m_tableHelper.recordExistsAt(key, index))
         return false;
 
     m_tableContent.records[index] = {};
@@ -117,23 +132,53 @@ std::vector<std::string> HashTable::getTitles() const
     return m_tableContent.titles;
 }
 
-int HashTable::getTotalCollisions() const
+int HashTable::showStatistics()
 { 
-    return m_totalCollisions;
+    return calculateCollisions();
+}
+int HashTable::calculateCollisions()
+{
+    auto data = getData();
+    int totalCollisions = 0;
+    for(const auto record : data)
+    {
+        auto key = record.fields[0];
+        if(!key.empty())
+        {
+            auto index = hashFunction(key);
+            if(hasCollisionAt(index) && key != m_tableContent.records[index].fields[0]) 
+                totalCollisions++;
+        }
+    }
+    return totalCollisions;
+}
+bool HashTable::hasCollisionAt(int index)
+{
+    return !m_tableHelper.recordEmptyAt(index);
 }
 
-int HashTable::m_linear_probing(int index, const std::string& key, ProbeMode mode)
+std::map<std::string, short> HashTable::countOccurrences()
+{
+    std::map<std::string, short> m;
+    auto data = getData();
+    for(const auto record : data)
+    {
+        auto key = record.fields[0];
+        if(m.contains(key)) m[key]++;
+        else m[key] = 1; 
+    }
+    return m;
+}
+
+int HashTable::linearProbing(int index, const std::string& key, ProbeMode mode)
 {
     int startIndex = index;
     do {
         switch (mode)
         {
             case ProbeMode::ADD:
-                if (m_tableHelper.recordEmptyAt(index)) {
+                if (!hasCollisionAt(index)) {
                     return index;
-                }
-                if (m_tableHelper.recordExistsAt(key, index)) {
-                    return -1;
                 }
                 break;
             case ProbeMode::FIND:
@@ -146,7 +191,6 @@ int HashTable::m_linear_probing(int index, const std::string& key, ProbeMode mod
         }
 
         index = (index + 1) % N;
-        ++m_totalCollisions;
     } while (index != startIndex);
 
     return -1;
