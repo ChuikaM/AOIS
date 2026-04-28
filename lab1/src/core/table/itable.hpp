@@ -2,7 +2,7 @@
 #include <vector>
 #include <tabledata.hpp>
 
-enum RecordMethod { FREE_RECORD, INDEX_RECORD };
+enum class RecordMethod : unsigned short { FREE_RECORD, INDEX_RECORD };
 
 class ITable
 {

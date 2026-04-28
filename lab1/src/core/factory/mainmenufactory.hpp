@@ -3,7 +3,7 @@
 #include <optional>
 #include <menu.hpp>
 
-enum OptionType {
+enum class OptionType : unsigned short {
     MainMenu,
     RegularTableMenu,
     HashTableMenu
