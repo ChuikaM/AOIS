@@ -34,7 +34,7 @@ protected:
 // ============================================================================
 TEST_F(HashTableTest, ConstructorInitializesCorrectly) {
     EXPECT_EQ(table->getData().size(), 16);
-    EXPECT_EQ(table->showStatistics(), 0);
+    EXPECT_EQ(table->getTotalCollisions(), 0);
     EXPECT_FALSE(containsKey("any_key"));
 }
 
@@ -163,7 +163,7 @@ TEST_F(HashTableTest, RemoveThenAddReusesSlot) {
 // Collision Handling & Probing
 // ============================================================================
 TEST_F(HashTableTest, CollisionCounterIncrements) {
-    int initial = table->showStatistics();
+    int initial = table->getTotalCollisions();
     
     // Add enough records to force at least one collision in a size-16 table
     for (int i = 0; i < 20; ++i) {
@@ -171,7 +171,7 @@ TEST_F(HashTableTest, CollisionCounterIncrements) {
         int idx = table->indexOfRecord("col_" + std::to_string(i), RecordMethod::FREE_RECORD);
         table->add(rec, idx);
     }
-    EXPECT_GE(table->showStatistics(), initial);
+    EXPECT_GE(table->getTotalCollisions(), initial);
 }
 
 TEST_F(HashTableTest, FindWorksAfterProbing) {
@@ -450,20 +450,4 @@ TEST_F(RegularTableTest, GetDataReturnsFullArray) {
         if (r != Record()) ++non_empty;
     }
     EXPECT_EQ(non_empty, 2);
-}
-
-TEST_F(RegularTableTest, GetTitlesReturnsLoadedTitles) {
-    // Simulate what loadTable does
-    table->getTitles(); // Initially empty
-    // If you test loadTable, use a temp file with known titles
-}
-
-// ============================================================================
-// loadTable Integration (optional - requires temp file)
-// ============================================================================
-TEST_F(RegularTableTest, LoadTablePopulatesSequentially) {
-    // This test requires a valid CSV/file that TableLoader can parse
-    // Example: create a temp file with 3 records, then verify they're at indices 0,1,2
-    // Skip if file I/O is out of scope for unit tests
-    GTEST_SKIP() << "Integration test - requires temp file setup";
 }

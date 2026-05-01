@@ -213,13 +213,19 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
         if (!ht) return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
 
         auto collisions = ht->showStatistics();
-        auto count = ht->getData().size();
+        auto data = ht->getData();
+        auto count = std::count_if(data.begin(), data.end(), [](const Record& record){ return record != Record(); });
+        auto max = data.size();
+        auto totalCollisions = ht->getTotalCollisions();
         return ftxui::hbox({
             ftxui::text("Коллизии: "),
-            ftxui::text(std::to_string(collisions)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta),
+            ftxui::text(std::to_string(totalCollisions)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta),
             ftxui::separator(),
             ftxui::text("Кол-во записей: "),
-            ftxui::text(std::to_string(count)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta)
+            ftxui::text(std::to_string(count)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta),
+            ftxui::separator(),
+            ftxui::text("Максимальное кол-во записей: "),
+            ftxui::text(std::to_string(max)) | ftxui::bold | ftxui::color(ftxui::Color::Magenta)
         }) | ftxui::center | ftxui::flex;
     });
 }
@@ -231,15 +237,15 @@ ftxui::Component ModalFactory::m_createGraphView(ITable* table)
         if (!ht) return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
 
         auto collisions = ht->showStatistics();
-        auto count = ht->getData().size();
+        auto data = ht->getData();
+        auto count = std::count_if(data.begin(), data.end(), [](const Record& record){ return record != Record(); });
+        auto totalCollisions = ht->getTotalCollisions();
         if (count == 0) return ftxui::text("Нет данных") | ftxui::dim | ftxui::center;
 
-        ftxui::Canvas c(count, collisions);
-        float slope = static_cast<float>(collisions) / count;
-        
-        for (size_t x = 0; x < count - 1; ++x) {
-            int y1 = collisions - 1 - static_cast<int>(slope * x);
-            int y2 = collisions - 1 - static_cast<int>(slope * (x + 1));
+        ftxui::Canvas c(count, collisions.size());
+        for (size_t x = 0; x < count - 1; x++) {
+            int y1 = totalCollisions - collisions[x];
+            int y2 = totalCollisions - collisions[x + 1];
             c.DrawPointLine(x, y1, x + 1, y2);
         }
         return ftxui::canvas(std::move(c)) | ftxui::center;

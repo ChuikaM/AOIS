@@ -1,8 +1,7 @@
 #include <hashtable.hpp>
 #include <iostream>
 #include <limits>
-#include <algorithm>
-#include <set>
+#include <bit>
 
 HashTable::HashTable(int size)
     : N(size),
@@ -33,14 +32,17 @@ int HashTable::hashFunction(const std::string &key)
         result = (result * static_cast<int>(c)) % max;
     }
     auto twoDigits = static_cast<int>(result % 100);
-    auto square = twoDigits * twoDigits; // max 14 bits here : we can use programmer calc
+    unsigned short square = twoDigits * twoDigits;
     
-    std::vector<int> possible_indexes {
-        (square >> 1) & (N - 1),
-        (square >> 7) & (N - 1),
-        (square >> 4) & (N - 1)
-    };
-    return *(std::max_element(possible_indexes.begin(), possible_indexes.end()));
+    auto bits = std::bit_width(static_cast<unsigned int>(square));
+    const auto MAX_BITS = static_cast<unsigned short>(log2(N));
+    if(bits < MAX_BITS)
+    {
+        return square;
+    }
+    int shift = std::floor((bits - MAX_BITS) / 2);
+    int mask = (1 << MAX_BITS) - 1;
+    return static_cast<int>((square >> shift) & mask);
 }
 
 bool HashTable::add(const Record& record, int index)
@@ -53,7 +55,6 @@ bool HashTable::add(const Record& record, int index)
 
     if(hasCollisionAt(index))
         index = linearProbing(index, key, ProbeMode::ADD);
-
     if(!m_tableHelper.indexValid(index)) 
         return false;
     
@@ -69,7 +70,6 @@ TableResult HashTable::find(const std::string& key, int index)
     
     if(hasCollisionAt(index))
         index = linearProbing(index, key, ProbeMode::FIND);
-    
     if(!m_tableHelper.indexValid(index)) 
         return {{}, false};
 
@@ -84,7 +84,6 @@ bool HashTable::modify(const Record& record, int index)
 
     if(hasCollisionAt(index))
         index = linearProbing(index, key, ProbeMode::MODIFY);
-
     if(!m_tableHelper.indexValid(index)) 
         return false;
     if(!m_tableHelper.recordExistsAt(key, index))
@@ -134,14 +133,17 @@ std::vector<std::string> HashTable::getTitles() const
     return m_tableContent.titles;
 }
 
-int HashTable::showStatistics()
-{ 
-    return calculateCollisions();
-}
-int HashTable::calculateCollisions()
+int HashTable::getTotalCollisions() const
 {
+    return m_totalCollisions;
+}
+
+std::vector<int> HashTable::showStatistics()
+{ 
+    std::vector<int> statistics(N);
     auto data = getData();
-    int totalCollisions = 0;
+    m_totalCollisions = 0;
+    short i = 0;
     for(const auto record : data)
     {
         auto key = record.fields[0];
@@ -149,11 +151,15 @@ int HashTable::calculateCollisions()
         {
             auto index = hashFunction(key);
             if(hasCollisionAt(index) && key != m_tableContent.records[index].fields[0]) 
-                totalCollisions++;
+            {
+                m_totalCollisions++;
+            }
+            statistics[i++] = m_totalCollisions;
         }
     }
-    return totalCollisions;
+    return statistics;
 }
+
 bool HashTable::hasCollisionAt(int index)
 {
     return !m_tableHelper.recordEmptyAt(index);

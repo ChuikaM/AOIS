@@ -26,11 +26,11 @@ public:
     std::vector<Record> getData() const override;
     std::vector<std::string> getTitles() const override;
 
-    int showStatistics();
+    int getTotalCollisions() const;
+    std::vector<int> showStatistics();
     std::map<std::string, short> countOccurrences();
 
 private:
-    int calculateCollisions();
     int linearProbing(int index, const std::string& key, ProbeMode mode);
     bool hasCollisionAt(int index);
 
@@ -38,5 +38,6 @@ private:
     TableContent m_tableContent;
     const int N;
     int m_recordsCount {};
+    int m_totalCollisions {};
 
 };
