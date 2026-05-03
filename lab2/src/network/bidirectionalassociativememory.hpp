@@ -4,7 +4,7 @@
 
 class BidirectionalAssociativeMemory : public INetwork {
 public:
-    explicit BidirectionalAssociativeMemory();
+    explicit BidirectionalAssociativeMemory() = default;
 
     void train(const Matrix<float>& trainData) override;
     
