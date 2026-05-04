@@ -1,9 +1,5 @@
 #include <hammingnetwork.hpp>
 
-template <typename T> bool F(T val) {
-    return val > T(0) ? T : 0;
-}
-
 void HammingNetwork::train(const Matrix<float>& trainData)
 {
     m_w.resize(trainData.column(), trainData.row());
@@ -19,7 +15,17 @@ void HammingNetwork::train(const Matrix<float>& trainData)
     }
 }
 
-Matrix<float> HammingNetwork::sync(const Matrix<float>& noiseData, const Matrix<float>& originalData)
+int HammingNetwork::sync(const Matrix<float>& noiseData, const Matrix<float>& originalData)
+{
+    std::vector<float> noise = noiseData.at_row(0);
+
+    auto y = compute_layer1(noise);
+    auto index = compute_layer2(y);
+
+    return index;
+}
+
+std::vector<float> HammingNetwork::compute_layer1(const std::vector<float> &noise)
 {
     auto sum_at = [this](int i, const std::vector<float>& noise) -> float {
         float sum_y = 0;
@@ -30,28 +36,33 @@ Matrix<float> HammingNetwork::sync(const Matrix<float>& noiseData, const Matrix<
         return sum_y;
     };
 
-    std::vector<float> noise = noiseData.at_row(0);
-    std::vector<float> nextComputeData(noiseData);
-
     const int N = m_w.row();
-
     std::vector<float> y;
-    for(int i = 0; i < m_w.row(); i++)
+    for(size_t i = 0; i < m_w.row(); i++)
     {
         float sum_y = sum_at(i, noise);
         sum_y += N / 2;
         y.push_back(std::move(sum_y));
     }
-    
+    return y;
+}
+
+int HammingNetwork::compute_layer2(const std::vector<float> &y)
+{
+    auto F = []<typename T>(T val) -> T {
+        return val > T(0) ? val : T(0);
+    };
+
+    const int N = m_w.row();
     float e = floor(1 / N);
     std::vector<float> z(y);
     std::vector<float> s(y.size());
     while(std::count(s.begin(), s.end(), 0) < z.size() - 1)
     {
-        for(int i = 0; i < y.size(); i++)
+        for(size_t i = 0; i < y.size(); i++)
         {
             float sum_z = 0;
-            for(int j = 0; j < z.size(); j++)
+            for(size_t j = 0; j < z.size(); j++)
             {
                 if(j == i) continue;
                 sum_z += z[j];
@@ -59,10 +70,14 @@ Matrix<float> HammingNetwork::sync(const Matrix<float>& noiseData, const Matrix<
             s.push_back(z[i] - e * sum_z);
         }
         
-        for(int j = 0; j < z.size(); j++)
+        for(size_t j = 0; j < z.size(); j++)
         {
             z[j] = F(s[j]);
         }
     }
-    return Matrix<float>();
+
+    auto iter = std::find_if(s.begin(), s.end(), [](const float val){return val > 0;});
+    if(iter == s.end()) 
+        return -1;
+    return std::distance(s.begin(), iter);
 }
