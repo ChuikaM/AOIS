@@ -25,6 +25,12 @@ HopfieldNetworkReportPrinter::HopfieldNetworkReportPrinter(const Report &report)
     : m_report(report)
 {}
 
+void HopfieldNetworkReportPrinter::printInfo()
+{
+    printAsyncInfo();
+    printSyncInfo();
+}
+
 void HopfieldNetworkReportPrinter::printAsyncInfo()
 {
     for(size_t i = 0; i < m_report.stages; i++)

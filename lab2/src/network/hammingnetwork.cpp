@@ -2,15 +2,16 @@
 
 void HammingNetwork::train(const Matrix<float>& trainData)
 {
-    m_w.resize(trainData.column(), trainData.row());
+    m_w.resize(trainData.row(), trainData.column());
     m_t.resize(1, trainData.column());
 
+    size_t num_features = trainData.column();
     for(size_t i = 0; i < m_w.row(); i++)
     {
-        m_t.at(0, i) = trainData.column() / 2;
+        m_t.at(0, i) = static_cast<float>(num_features) / 2.0f;
         for(size_t j = 0; j < m_w.column(); j++)
         {
-           m_w.at(i, j) = pow(trainData.at(i, j), j) / 2;
+           m_w.at(i, j) = trainData.at(i, j) / 2.0f;
         }
     }
 }

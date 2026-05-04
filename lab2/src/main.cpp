@@ -8,11 +8,15 @@
 
 #include <network.hpp>
 #include <hopfieldnetworkreportprinter.hpp>
+#include <hammingreportprinter.hpp>
+#include <bidirectionalassociativememoryreportprinter.hpp>
 
 void printSourceVectors(const std::vector<std::vector<float>>& data);
 void printVector(const std::vector<float>& data, const std::string& title);
 
 void hopfieldnetwork_example(HopfieldNetwork* hopfieldNetwork, std::vector<std::vector<float>> originalData, std::vector<std::vector<float>> noiseData);
+void hammingnetwork_example(HammingNetwork* hammingdNetwork, std::vector<std::vector<float>> originalData, std::vector<std::vector<float>> noiseData);
+void bidirectionalassociativememory_example(BidirectionalAssociativeMemory* bidirectionalAssociativeMemory, std::vector<std::vector<float>> originalData, std::vector<std::vector<float>> noiseData);
 
 int main()
 {
@@ -31,7 +35,7 @@ int main()
     auto bidirectionalAssociativeMemory = std::make_unique<BidirectionalAssociativeMemory>();
     
     hopfieldNetwork->train(data);
-  //  hammingNetwork->train(data);
+    hammingNetwork->train(data);
    // bidirectionalAssociativeMemory->train(data);
 
     hopfieldnetwork_example(hopfieldNetwork.get(), data, noiseData);
@@ -127,4 +131,9 @@ void hopfieldnetwork_example(HopfieldNetwork *hopfieldNetwork, std::vector<std::
         }
         std::cout << std::endl;
     }
+}
+
+void hammingnetwork_example(HammingNetwork *hammingdNetwork, std::vector<std::vector<float>> originalData, std::vector<std::vector<float>> noiseData)
+{
+    
 }

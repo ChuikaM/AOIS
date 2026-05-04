@@ -4,13 +4,11 @@
 
 void printVectorHighlighted(const std::vector<float>& data, const std::string& title, int highlightIndex);
 
-class HopfieldNetworkReportPrinter : public IReportPrinter {
+class HammingReportPrinter : IReportPrinter {
 public:
-    explicit HopfieldNetworkReportPrinter(const Report& report);
-    
+    explicit HammingReportPrinter(const Report& report);
+
     void printInfo() override;
-    void printAsyncInfo();
-    void printSyncInfo();
 
 private:
     Report m_report;
