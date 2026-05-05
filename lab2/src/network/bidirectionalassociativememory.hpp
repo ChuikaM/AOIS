@@ -1,7 +1,7 @@
 #pragma once
 #include <inetwork.hpp>
 #include <vector>
-#include <report.hpp>
+#include <bidirectionalreport.hpp>
 
 enum class InputVariable : unsigned int { X, Y };
 
@@ -12,12 +12,11 @@ public:
     void train(const Matrix<float>& trainData) override;
     void train(const Matrix<float>& X, const Matrix<float>& Y);
 
-    Report sync(const Matrix<float>& noiseData, const Matrix<float>& originalData, InputVariable variable);
+    void sync(const Matrix<float>& noiseData, const Matrix<float>& originalData, InputVariable variable);
+
+    BidirectionalReport generateReport() const;
     
 private:
-    Report computeX(const Matrix<float>& noiseY, const Matrix<float>& originalY);
-    Report computeY(const Matrix<float>& noiseX, const Matrix<float>& originalX);
-
     Matrix<float> m_w;
 
 };

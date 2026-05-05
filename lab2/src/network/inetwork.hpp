@@ -1,6 +1,7 @@
 #pragma once
 #include <matrix.h>
 #include <vector>
+#include <ireport.hpp>
 
 class INetwork {
 public:

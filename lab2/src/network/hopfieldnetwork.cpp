@@ -1,76 +1,84 @@
 #include <hopfieldnetwork.hpp>
-
-template <typename T> bool sgn(T val) {
-    return val > T(0);
-}
+#include <vector>
+#include <cmath>
 
 void HopfieldNetwork::train(const Matrix<float>& trainData)
 {
-    m_w.resize(trainData.column(), trainData.column());
-    std::vector<float> dataOnes(trainData.column(), 1.0);
-    Matrix<float> ones(dataOnes);
-    for(size_t i = 0; i < trainData.row(); i++)
-    {
-        Matrix<float> trainDataMatrix(trainData.at_row(i));
-        m_w += (trainDataMatrix*2 - ones)*((trainDataMatrix*2 - ones).transpose());
+    size_t n = trainData.column();
+    size_t p = trainData.row();
+    m_w.resize(n, n);
+
+    for (size_t k = 0; k < p; ++k) {
+        std::vector<float> y = trainData.at_row(k);
+        std::vector<float> bip(n);
+        for (size_t i = 0; i < n; ++i) bip[i] = 2.0f * y[i] - 1.0f;
+
+        for (size_t i = 0; i < n; ++i)
+            for (size_t j = 0; j < n; ++j)
+                m_w.at(i, j) += bip[i] * bip[j];
     }
-    m_w -= identity_matrix<float>(trainData.column(), 0.0)*trainData.column();
+
+    for (size_t i = 0; i < n; ++i) m_w.at(i, i) = 0.0f;
 }
 
-Report HopfieldNetwork::async(const std::vector<float> &noiseData, const std::vector<float>& originalData)
-{    
-    std::vector<float> nextComputeData(noiseData);
-    Report report;
-    report.iterations = noiseData.size();
-    int stages = 0;
-    while(nextComputeData != originalData && stages < 10)
-    {
-        stages++;
-        for(size_t i = 0; i < noiseData.size(); i++)
-        {
-            auto w_copy = m_w.at_column(i);
-            float singValue = 0;
-            for(int j = 0; j < noiseData.size(); j++)
-            {
-                singValue += w_copy[j] * nextComputeData[j];
-            }
-            nextComputeData[i] = sgn(singValue);
-            if(nextComputeData[i] != originalData[i])
-                report.max_errors++;
-        }
-
-        report.outputs.push_back(nextComputeData);
-        report.results.push_back(nextComputeData == originalData);
-    } 
-    report.stages = stages;
-    return report;
-}
-
-Report HopfieldNetwork::sync(const std::vector<float> &noiseData, const std::vector<float>& originalData)
+void HopfieldNetwork::async(const std::vector<float>& noiseData, const std::vector<float>& originalData)
 {
-    auto singMatrix = [](std::vector<float> &row){
-        for(int i = 0; i < row.size(); i++)
-        {
-            row[i] = sgn(row[i]);
-        }
-    };
-    
-    std::vector<float> nextComputeData(noiseData);
-    Report report;
-    int stages = 0;
-    while(nextComputeData != originalData && stages < 10)
-    {
-        stages++;
-        Matrix<float> y(nextComputeData);
-        nextComputeData = (m_w * y).at_column(0);
-        singMatrix(nextComputeData);
+    std::vector<float> state = noiseData;
+    int stage = 0;
+    const int MAX_STAGES = 10;
 
-        if(nextComputeData != originalData)
-                report.max_errors++;
-        report.outputs.push_back(nextComputeData);
-        report.results.push_back(nextComputeData == originalData);
+    //report.iterations = originalData.size();
+    while (stage < MAX_STAGES) {
+        ++stage;
+        std::vector<float> prev = state;
+
+        for (size_t i = 0; i < state.size(); ++i) {
+            float S = 0.0f;
+            for (size_t j = 0; j < state.size(); ++j)
+                S += m_w.at(i, j) * state[j];
+            
+            state[i] = (S > 0.0f) ? 1.0f : 0.0f;
+        }
+
+       // report.outputs.push_back(state);
+        bool stable = (state == prev);
+        // report.results.push_back(stable);
+        // report.stages = stage;
+        if (stable) break;
     }
-    report.stages = stages;
-    report.iterations = stages;
+}
+
+void HopfieldNetwork::sync(const std::vector<float>& noiseData, const std::vector<float>& originalData)
+{
+    std::vector<float> state = noiseData;
+    int stage = 0;
+    const int MAX_STAGES = 10;
+
+    //report.iterations = originalData.size();
+    while (stage < MAX_STAGES) {
+        ++stage;
+        std::vector<float> prev = state;
+        std::vector<float> next(state.size());
+
+        for (size_t i = 0; i < state.size(); ++i) {
+            float S = 0.0f;
+            for (size_t j = 0; j < state.size(); ++j)
+                S += m_w.at(i, j) * state[j];
+            next[i] = (S > 0.0f) ? 1.0f : 0.0f;
+        }
+
+        state = next;
+        //report.outputs.push_back(state);
+        bool stable = (state == prev);
+        // report.results.push_back(stable);
+        // report.stages = stage;
+        if (stable) break;
+    }
+}
+
+HopfieldReport HopfieldNetwork::generateReport() const
+{
+    HopfieldReport report;
+
     return report;
 }

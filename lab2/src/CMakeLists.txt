@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_subdirectory(report)
+add_subdirectory(helper)
+add_subdirectory(converter)
+add_subdirectory(loader)
+add_subdirectory(manager)
 add_subdirectory(network)
 add_subdirectory(printer)
 add_subdirectory(matrix/src)
@@ -15,4 +20,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     network
     matrix
     report_printer
+    manager
+    loader
+    converter
+    helper
+    report
 )

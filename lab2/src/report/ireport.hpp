@@ -1,14 +1,13 @@
 #pragma once
 #include <vector>
 
-struct Report
+struct IReport
 {
-    std::vector<std::vector<float>> outputs;
-    
     int max_errors {};
     int stages {};
     int iterations {};
-
+    
+    std::vector<std::vector<float>> outputs;
     std::vector<float> results;
 
 };

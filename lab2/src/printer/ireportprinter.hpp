@@ -2,7 +2,7 @@
 
 class IReportPrinter {
 public:
-    ~IReportPrinter() = default;
+    virtual ~IReportPrinter() = default;
 
     virtual void printInfo() = 0;
 

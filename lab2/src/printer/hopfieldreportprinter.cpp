@@ -1,37 +1,19 @@
-#include <hopfieldnetworkreportprinter.hpp>
+#include <hopfieldreportprinter.hpp>
 #include <iostream>
 #include <format>
+#include <helper.hpp>
 
-void printVectorHighlighted(const std::vector<float>& data, const std::string& title, int highlightIndex)
-{
-    std::cout << std::format("{} ({}) = ", title, highlightIndex);
-
-    std::cout << "[ ";
-    for (size_t i = 0; i < data.size(); i++) {
-        int val = static_cast<int>(data[i]);
-        if (highlightIndex > 0 && i + 1 == static_cast<size_t>(highlightIndex))
-            std::cout << "(" << val << ")";
-        else
-            std::cout << val;
-
-        if (i + 1 < data.size())
-            std::cout << " ";
-    }
-    std::cout << " ]";
-    std::cout << std::endl;
-}
-
-HopfieldNetworkReportPrinter::HopfieldNetworkReportPrinter(const Report &report)
+HopfieldReportPrinter::HopfieldReportPrinter(const HopfieldReport &report)
     : m_report(report)
 {}
 
-void HopfieldNetworkReportPrinter::printInfo()
+void HopfieldReportPrinter::printInfo()
 {
     printAsyncInfo();
     printSyncInfo();
 }
 
-void HopfieldNetworkReportPrinter::printAsyncInfo()
+void HopfieldReportPrinter::printAsyncInfo()
 {
     for(size_t i = 0; i < m_report.stages; i++)
     {
@@ -39,6 +21,9 @@ void HopfieldNetworkReportPrinter::printAsyncInfo()
         for(size_t j = 0; j < m_report.iterations; j++)
         {
             printVectorHighlighted(m_report.outputs[i], "y_model", j+1);
+            if(m_report.bit_change_states[i][j])
+                std::cout << "Bit changed value to " << m_report.outputs[i][j];
+            std::cout << std::endl;
         }
         if(m_report.results[i])
             std::cout << std::format("y_stage_{} == y_original -> relaxation, correct", i+1) << std::endl;
@@ -47,7 +32,7 @@ void HopfieldNetworkReportPrinter::printAsyncInfo()
     }
 }
 
-void HopfieldNetworkReportPrinter::printSyncInfo()
+void HopfieldReportPrinter::printSyncInfo()
 {
     for(size_t i = 0; i < m_report.stages; i++)
     {
