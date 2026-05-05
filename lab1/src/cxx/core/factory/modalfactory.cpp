@@ -270,7 +270,7 @@ ftxui::Component ModalFactory::m_createGraphView(ITable* table, bool& needsUpdat
                 FileWriter::write("./files/graph.txt", collisions);
                 std::system("python3 ./src/py/graph.py ./files/graph.txt");
             }
-            needsUpdate = false; // действие выполнено, сбрасываем флаг
+            needsUpdate = false;
         }
 
         return ftxui::text("График коллизий") | ftxui::dim | ftxui::center;
