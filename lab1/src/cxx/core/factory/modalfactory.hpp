@@ -44,6 +44,6 @@ private:
     ftxui::Component m_createDeleteForm(ITable* table, ModalFactory::Context ctx);
     ftxui::Component m_createFindForm(ITable* table, ModalFactory::Context ctx);
     ftxui::Component m_createCollisionsView(ITable* table);
-    ftxui::Component m_createGraphView(ITable* table);
+    ftxui::Component m_createGraphView(ITable* table, bool& needsUpdate);
 
 };

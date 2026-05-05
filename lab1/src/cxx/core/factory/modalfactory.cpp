@@ -7,6 +7,9 @@
 #include <regulartable.hpp>
 #include <sstream>
 
+#include <intvalidator.hpp>
+#include <filewriter.hpp>
+
 ftxui::Component ModalFactory::createFeedbackRenderer(Context ctx) const {
     return ftxui::Renderer([ctx] {
         if (!ctx.feedback_message || ctx.feedback_message->empty())
@@ -47,6 +50,7 @@ ftxui::Component ModalFactory::create(TableType type, ModalAction action, ITable
     auto hashOnlyFallback = ftxui::Renderer([] { 
         return ftxui::text("Только для HashTable") | ftxui::dim;
     });
+    bool graphNeedsUpdate = false;
     switch (action) {
         case ModalAction::Print:       return m_createPrintView(table, header_color);
         case ModalAction::Add:         return m_createAddForm(table, ctx);
@@ -54,7 +58,7 @@ ftxui::Component ModalFactory::create(TableType type, ModalAction action, ITable
         case ModalAction::Delete:      return m_createDeleteForm(table, ctx);
         case ModalAction::Find:        return m_createFindForm(table, ctx);
         case ModalAction::Collisions:  return (type == TableType::Hash) ? m_createCollisionsView(table) : hashOnlyFallback;
-        case ModalAction::Graph:       return (type == TableType::Hash) ? m_createGraphView(table) : hashOnlyFallback;
+        case ModalAction::Graph:       graphNeedsUpdate = true; return (type == TableType::Hash) ? m_createGraphView(table, graphNeedsUpdate) : hashOnlyFallback;
         default:                       return ftxui::Renderer([] { return ftxui::text("Неизвестное действие") | ftxui::dim; });
     }
 }
@@ -108,6 +112,13 @@ ftxui::Component ModalFactory::m_createAddForm(ITable* table, Context ctx)
             if (ctx.feedback_message) *ctx.feedback_message = "Заполните поля до конца";
             return;
         }
+        bool all_filled_valid = std::all_of(ctx.input_fields->begin() + 1, ctx.input_fields->end(),
+            [](const std::string& s) { return IntValidator::valid(s); });
+
+        if(!all_filled_valid) {
+            if (ctx.feedback_message) *ctx.feedback_message = "Невалидно заполненные данные";
+            return;
+        }
 
         Record rec{*ctx.input_fields};
         int index = table->indexOfRecord((*ctx.input_fields)[0], RecordMethod::FREE_RECORD);
@@ -134,6 +145,13 @@ ftxui::Component ModalFactory::m_createEditForm(ITable* table, Context ctx)
             
         if (!all_filled) {
             if (ctx.feedback_message) *ctx.feedback_message = "Заполните поля до конца";
+            return;
+        }
+        bool all_filled_valid = std::all_of(ctx.input_fields->begin()+1, ctx.input_fields->end(),
+            [](const std::string& s) { return IntValidator::valid(s); });
+
+        if(!all_filled_valid) {
+            if (ctx.feedback_message) *ctx.feedback_message = "Невалидно заполненные данные";
             return;
         }
 
@@ -230,24 +248,31 @@ ftxui::Component ModalFactory::m_createCollisionsView(ITable* table)
     });
 }
 
-ftxui::Component ModalFactory::m_createGraphView(ITable* table) 
+ftxui::Component ModalFactory::m_createGraphView(ITable* table, bool& needsUpdate)
 {
-    return ftxui::Renderer([table] {
+    return ftxui::Renderer([table, &needsUpdate] {
         auto* ht = dynamic_cast<HashTable*>(table);
         if (!ht) return ftxui::text("Н/Д") | ftxui::dim | ftxui::center;
 
-        auto collisions = ht->showStatistics();
-        auto data = ht->getData();
-        auto count = std::count_if(data.begin(), data.end(), [](const Record& record){ return record != Record(); });
-        auto totalCollisions = ht->getTotalCollisions();
-        if (count == 0) return ftxui::text("Нет данных") | ftxui::dim | ftxui::center;
+        if (needsUpdate) {
+            auto collisions = ht->showStatistics();
+            collisions.erase(
+                std::remove_if(collisions.begin(), collisions.end(),
+                               [](int val) { return val == 0; }),
+                collisions.end()
+            );
 
-        ftxui::Canvas c(count, collisions.size());
-        for (size_t x = 0; x < count - 1; x++) {
-            int y1 = totalCollisions - collisions[x];
-            int y2 = totalCollisions - collisions[x + 1];
-            c.DrawPointLine(x, y1, x + 1, y2);
+            auto data = ht->getData();
+            auto count = std::count_if(data.begin(), data.end(),
+                                       [](const Record& r) { return r != Record(); });
+
+            if (count > 0) {
+                FileWriter::write("./files/graph.txt", collisions);
+                std::system("python3 ./src/py/graph.py ./files/graph.txt");
+            }
+            needsUpdate = false; // действие выполнено, сбрасываем флаг
         }
-        return ftxui::canvas(std::move(c)) | ftxui::center;
+
+        return ftxui::text("График коллизий") | ftxui::dim | ftxui::center;
     });
 }
