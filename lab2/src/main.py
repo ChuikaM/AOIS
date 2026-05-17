@@ -18,10 +18,6 @@ VECTORS_TABLE = {
     12: [1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1]
 }
 
-def get_vec(idx, length):
-    v = VECTORS_TABLE[idx]
-    return v[:length] + [0]*(length-len(v)) if len(v) < length else v[:length]
-
 def flip_bits(vec, k):
     noisy = vec.copy()
     for i in range(min(k, len(vec))):
@@ -42,7 +38,6 @@ def test_max_bits(patterns, recall_func):
         results.append(max_k)
     return results
 
-# Отдельная функция для BAM, т.к. входной и целевой вектора разные
 def test_max_bits_bam(patterns_in, patterns_out, recall_func):
     results = []
     for p_in, p_out in zip(patterns_in, patterns_out):
@@ -58,27 +53,24 @@ def test_max_bits_bam(patterns_in, patterns_out, recall_func):
 
 if __name__ == "__main__":
     np.random.seed(42)
-    N, M = 13, 13  # Вариант 4
+    N, M = 13, 13
     IDS = [3, 8, 4, 9]
     
-    # Берем полные векторы из таблицы (длиной 20)
     full_vecs = [VECTORS_TABLE[i][:20] for i in IDS]
     
-    # Для Хопфилда и Хэмминга используем первые n элементов
-    hop_patterns = [v[:N] for v in full_vecs]
-    ham_patterns = hop_patterns.copy()
+    hop_patterns = full_vecs.copy()
+    ham_patterns = full_vecs.copy()
     
-    # Для BAM: первые n -> X, последние m -> Y (как в методичке)
     bam_x = [v[:N] for v in full_vecs]
     bam_y = [v[-M:] for v in full_vecs]
     
-    # ================= СЕТЬ ХОПФИЛДА =================
+
     print("=== Сеть Хопфилда ===")
     print("1. Source vectors:")
     for i, p in enumerate(hop_patterns):
         print(f"   y{i+1}={fmt(p)}")
 
-    hop = HopfieldNetwork(N)
+    hop = HopfieldNetwork(20)
     hop.train(hop_patterns)
     
     for i, p in enumerate(hop_patterns):
@@ -115,13 +107,13 @@ if __name__ == "__main__":
     print(f"   Async: {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_async))}")
     print(f"   Sync:  {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_sync))}")
 
-    # ================= СЕТЬ ХЭММИНГА =================
+
     print("\n=== Сеть Хэмминга ===")
     print("1. Source vectors:")
     for i, p in enumerate(ham_patterns):
         print(f"   y{i+1}={fmt(p)}")
 
-    ham = HammingNetwork(N, len(ham_patterns), epsilon=0.3)
+    ham = HammingNetwork(20, len(ham_patterns), epsilon=0.3)
     ham.train(ham_patterns)
     
     print("2. Recognition test:")
@@ -139,7 +131,7 @@ if __name__ == "__main__":
     max_ham = test_max_bits(ham_patterns, lambda x: ham.predict(x)[0])
     print("\n".join(f"   y_{i+1}= {m}" for i, m in enumerate(max_ham)))
 
-    # ================= BAM =================
+
     print("\n=== Двунаправленная ассоциативная память (BAM) ===")
     print("1. Source vectors:")
     for i in range(len(bam_x)):
@@ -164,9 +156,8 @@ if __name__ == "__main__":
         print(f"   y_model(1)== y_original-> {'relaxation, correct' if ry2==bam_y[i] else 'incorrect'}")
 
     print("\n4. Maximum number of recognised noisy bits:")
-    # X -> Y: искажаем X, проверяем восстановление Y
+
     max_bam_x_to_y = test_max_bits_bam(bam_x, bam_y, lambda x: bam.recall_from_x(x)[1])
-    # Y -> X: искажаем Y, проверяем восстановление X
     max_bam_y_to_x = test_max_bits_bam(bam_y, bam_x, lambda y: bam.recall_from_y(y)[0])
     
     print("   Y direction (X->Y recovery):")

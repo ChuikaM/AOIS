@@ -18,7 +18,6 @@ class HopfieldNetwork:
         return current_val
 
     def predict_async(self, noisy, max_cycles=10):
-        """Асинхронный режим с жёстким лимитом max_cycles (по умолчанию 10)"""
         y = np.array(noisy, copy=True)
         stages = []
         for cycle in range(max_cycles):

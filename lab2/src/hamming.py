@@ -24,10 +24,10 @@ class HammingNetwork:
         for _ in range(20):
             if np.sum(z > 0) == 1:
                 break
-            # Формула (2.3): Sj(t) = zj(t) - e * sum(zk(t) for k!=j)
+
             sum_z = np.sum(z)
             s = z - self.epsilon * (sum_z - z)
-            # Функция активации: F(S) = S if S>0 else 0
+          
             z = np.array([si if si > 0 else 0.0 for si in s])
             history_z.append(z.copy().tolist())
             

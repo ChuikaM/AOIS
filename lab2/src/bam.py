@@ -35,7 +35,7 @@ class BAMNetwork:
             hist_y.append(self._bipolar_to_binary(y))
             hist_x.append(self._bipolar_to_binary(x))
             
-            if np.array_equal(x, 2*np.array(hist_x[-2])-1): # Упрощённая проверка стабильности
+            if np.array_equal(x, 2*np.array(hist_x[-2])-1):
                 break
         return self._bipolar_to_binary(x), self._bipolar_to_binary(y)
 
