@@ -2,54 +2,12 @@ import numpy as np
 from hopfield import HopfieldNetwork
 from hamming import HammingNetwork
 from bam import BAMNetwork
-
-VECTORS_TABLE = {
-    1:  [0,1,0,0,1,1,0,1,0,0,0,0,1,0,1,0,1,0,0,0],
-    2:  [0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0],
-    3:  [1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1],
-    4:  [1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0],
-    5:  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-    6:  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
-    7:  [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-    8:  [1,1,1,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1,1],
-    9:  [0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0],
-    10: [0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,1,1,1,0,0],
-    11: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0],
-    12: [1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1]
-}
-
-def flip_bits(vec, k):
-    noisy = vec.copy()
-    for i in range(min(k, len(vec))):
-        noisy[i] = 1 - noisy[i]
-    return noisy
-
-def fmt(v): return "[" + " ".join(map(str, v)) + "]"
-
-def test_max_bits(patterns, recall_func):
-    results = []
-    for p in patterns:
-        max_k = 0
-        for k in range(1, len(p) + 1):
-            if recall_func(flip_bits(p, k)) == p:
-                max_k = k
-            else:
-                break
-        results.append(max_k)
-    return results
-
-def test_max_bits_bam(patterns_in, patterns_out, recall_func):
-    results = []
-    for p_in, p_out in zip(patterns_in, patterns_out):
-        max_k = 0
-        for k in range(1, len(p_in) + 1):
-            noisy = flip_bits(p_in, k)
-            if recall_func(noisy) == p_out:
-                max_k = k
-            else:
-                break
-        results.append(max_k)
-    return results
+from data import VECTORS_TABLE, flip_bits, fmt, test_max_bits, test_max_bits_bam
+from tables import (
+    print_dominance_table,
+    print_hamming_accuracy_table,
+    print_dominance_table_simple
+)
 
 if __name__ == "__main__":
     np.random.seed(42)
@@ -57,13 +15,10 @@ if __name__ == "__main__":
     IDS = [3, 8, 4, 9]
     
     full_vecs = [VECTORS_TABLE[i][:20] for i in IDS]
-    
     hop_patterns = full_vecs.copy()
     ham_patterns = full_vecs.copy()
-    
     bam_x = [v[:N] for v in full_vecs]
     bam_y = [v[-M:] for v in full_vecs]
-    
 
     print("=== Сеть Хопфилда ===")
     print("1. Source vectors:")
@@ -82,7 +37,6 @@ if __name__ == "__main__":
             for idx, state in updates:
                 parts = [f"({v})" if k == idx else str(v) for k, v in enumerate(state)]
                 print(f"   y_model ({idx+1}) = [{ ' '.join(parts) }]")
-            
             final_state = updates[-1][1]
             if np.array_equal(final_state, p):
                 print(f"   y_stage_{stage_idx} == y_original -> relaxation, correct")
@@ -107,6 +61,8 @@ if __name__ == "__main__":
     print(f"   Async: {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_async))}")
     print(f"   Sync:  {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_sync))}")
 
+    noisy_positions_list = [list(range(20)) for _ in hop_patterns]
+    print_dominance_table(hop, hop_patterns, noisy_positions_list)
 
     print("\n=== Сеть Хэмминга ===")
     print("1. Source vectors:")
@@ -130,7 +86,8 @@ if __name__ == "__main__":
     print("3. Maximum number of recognised noisy bits:")
     max_ham = test_max_bits(ham_patterns, lambda x: ham.predict(x)[0])
     print("\n".join(f"   y_{i+1}= {m}" for i, m in enumerate(max_ham)))
-
+    
+    print_hamming_accuracy_table(ham)
 
     print("\n=== Двунаправленная ассоциативная память (BAM) ===")
     print("1. Source vectors:")
@@ -156,7 +113,6 @@ if __name__ == "__main__":
         print(f"   y_model(1)== y_original-> {'relaxation, correct' if ry2==bam_y[i] else 'incorrect'}")
 
     print("\n4. Maximum number of recognised noisy bits:")
-
     max_bam_x_to_y = test_max_bits_bam(bam_x, bam_y, lambda x: bam.recall_from_x(x)[1])
     max_bam_y_to_x = test_max_bits_bam(bam_y, bam_x, lambda y: bam.recall_from_y(y)[0])
     
@@ -164,3 +120,5 @@ if __name__ == "__main__":
     print("\n".join(f"   y_{i+1}= {m}" for i, m in enumerate(max_bam_x_to_y)))
     print("   X direction (Y->X recovery):")
     print("\n".join(f"   x_{i+1}= {m}" for i, m in enumerate(max_bam_y_to_x)))
+    
+    print_dominance_table_simple(max_bam_x_to_y, max_bam_y_to_x)

@@ -4,8 +4,10 @@ class HopfieldNetwork:
     def __init__(self, n):
         self.n = n
         self.W = np.zeros((n, n))
+        self.source_vectors = None
 
     def train(self, patterns):
+        self.source_vectors = patterns.copy()
         self.W = np.zeros((self.n, self.n))
         for p in patterns:
             bipolar = 2 * np.array(p) - 1
@@ -28,7 +30,6 @@ class HopfieldNetwork:
                 y[idx] = self._activation(s, y[idx])
                 stage_updates.append((idx, y.copy()))
             stages.append(stage_updates)
-            # Если за полный цикл ни один нейрон не изменился -> релаксация
             if np.array_equal(y, y_start_cycle):
                 break
         return y.tolist(), stages

@@ -5,8 +5,10 @@ class BAMNetwork:
         self.n = n
         self.m = m
         self.W = np.zeros((n, m))
+        self.source_vectors = None
 
     def train(self, pairs):
+        self.source_vectors = [x for x, y in pairs]
         for x, y in pairs:
             x_b = 2 * np.array(x) - 1
             y_b = 2 * np.array(y) - 1
@@ -28,13 +30,10 @@ class BAMNetwork:
         for _ in range(max_steps):
             s_y = x @ self.W
             y = self._activation(s_y, y)
-            
             s_x = y @ self.W.T
             x = self._activation(s_x, x)
-            
             hist_y.append(self._bipolar_to_binary(y))
             hist_x.append(self._bipolar_to_binary(x))
-            
             if np.array_equal(x, 2*np.array(hist_x[-2])-1):
                 break
         return self._bipolar_to_binary(x), self._bipolar_to_binary(y)
@@ -48,13 +47,25 @@ class BAMNetwork:
         for _ in range(max_steps):
             s_x = y @ self.W.T
             x = self._activation(s_x, x)
-            
             s_y = x @ self.W
             y = self._activation(s_y, y)
-            
             hist_x.append(self._bipolar_to_binary(x))
             hist_y.append(self._bipolar_to_binary(y))
-            
             if np.array_equal(y, 2*np.array(hist_y[-2])-1):
                 break
         return self._bipolar_to_binary(x), self._bipolar_to_binary(y)
+
+    def recognize(self, noisy_vector, save_history=False):
+        result_x, result_y = self.recall_from_x(noisy_vector)
+        class Result:
+            def __init__(self, converged, winner_index):
+                self.converged = converged
+                self.winner_index = winner_index
+        converged = (result_x == noisy_vector)
+        winner_index = -1
+        if self.source_vectors:
+            for idx, orig in enumerate(self.source_vectors):
+                if result_x == orig:
+                    winner_index = idx
+                    break
+        return Result(converged, winner_index)
