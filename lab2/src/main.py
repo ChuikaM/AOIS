@@ -121,7 +121,7 @@ def main():
     print("   X direction (Y->X recovery):")
     print("\n".join(f"   x_{i+1}= {m}" for i, m in enumerate(max_bam_y_to_x)))
     
-    print_dominance_table_simple(max_bam_x_to_y, max_bam_y_to_x)
+    print_dominance_table_simple(bam, bam_x, bam_y, max_bits=N)
 
 if __name__ == "__main__":
     main()
