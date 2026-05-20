@@ -16,7 +16,7 @@ def recognition_result_for_mode(network, vector, noise_positions, mode="async"):
     noisy = flip_binary_bits(vector, noise_positions)
     if mode == "async":
         result, _ = network.predict_async(noisy, max_cycles=10)
-    else:  # sync
+    else:
         result, _ = network.predict_sync(noisy)
     return result == vector
 
