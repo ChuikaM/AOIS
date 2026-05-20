@@ -1,5 +1,3 @@
-import numpy as np
-
 def flip_binary_bits(vec, positions):
     noisy = vec.copy()
     for pos in positions:
@@ -8,7 +6,7 @@ def flip_binary_bits(vec, positions):
     return noisy
 
 
-def build_full_noise_order(positions, vector_size):
+def build_full_noise_order(positions):
     return list(positions)
 
 
@@ -31,7 +29,7 @@ def print_dominance_table(network, source_vectors, noisy_positions):
     full_noise_orders = []
 
     for positions in noisy_positions:
-        full_order = build_full_noise_order(positions, vector_size)
+        full_order = build_full_noise_order(positions)
         full_noise_orders.append(full_order)
 
     for noise_level in range(1, vector_size + 1):

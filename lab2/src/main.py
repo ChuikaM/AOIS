@@ -2,14 +2,14 @@ import numpy as np
 from hopfield import HopfieldNetwork
 from hamming import HammingNetwork
 from bam import BAMNetwork
-from data import VECTORS_TABLE, flip_bits, fmt, test_max_bits, test_max_bits_bam
+from data import VECTORS_TABLE, fmt, test_max_bits, test_max_bits_bam
 from tables import (
     print_dominance_table,
     print_hamming_accuracy_table,
     print_dominance_table_simple
 )
 
-if __name__ == "__main__":
+def main():
     np.random.seed(42)
     N, M = 13, 13
     IDS = [3, 8, 4, 9]
@@ -122,3 +122,6 @@ if __name__ == "__main__":
     print("\n".join(f"   x_{i+1}= {m}" for i, m in enumerate(max_bam_y_to_x)))
     
     print_dominance_table_simple(max_bam_x_to_y, max_bam_y_to_x)
+
+if __name__ == "__main__":
+    main()

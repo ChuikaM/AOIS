@@ -55,7 +55,7 @@ class BAMNetwork:
                 break
         return self._bipolar_to_binary(x), self._bipolar_to_binary(y)
 
-    def recognize(self, noisy_vector, save_history=False):
+    def recognize(self, noisy_vector):
         result_x, result_y = self.recall_from_x(noisy_vector)
         class Result:
             def __init__(self, converged, winner_index):
