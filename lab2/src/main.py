@@ -57,8 +57,8 @@ def main():
     print(f"   Async: {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_async))}")
     print(f"   Sync:  {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_sync))}")
 
-    print_dominance_table_statistical(hop, hop_patterns, max_noise=20, trials=50)
-    print_dominance_table_sync_statistical(hop, hop_patterns, max_noise=20, trials=50)
+    print_dominance_table_statistical(hop, hop_patterns, max_noise=20, trials=5000)
+    print_dominance_table_sync_statistical(hop, hop_patterns, max_noise=20, trials=5000)
 
     print("\n=== Сеть Хэмминга ===")
     print("1. Source vectors:")
@@ -83,7 +83,7 @@ def main():
     max_ham = test_max_bits(ham_patterns, lambda x: ham.predict(x)[0])
     print("\n".join(f"   y_{i+1}= {m}" for i, m in enumerate(max_ham)))
     
-    print_hamming_accuracy_table_statistical(ham, max_noise=20, trials=50)
+    print_hamming_accuracy_table_statistical(ham, max_noise=20, trials=5000)
 
     print("\n=== Двунаправленная ассоциативная память (BAM) ===")
     print("1. Source vectors:")
@@ -117,8 +117,8 @@ def main():
     print("   X direction (Y->X recovery):")
     print("\n".join(f"   x_{i+1}= {m}" for i, m in enumerate(max_bam_y_to_x)))
     
-    print_bam_table_statistical_x_to_y(bam, bam_x, bam_y, max_bits=N, trials=50)
-    print_bam_table_statistical_y_to_x(bam, bam_x, bam_y, max_bits=N, trials=50)   
+    print_bam_table_statistical_x_to_y(bam, bam_x, bam_y, max_bits=N, trials=5000)
+    print_bam_table_statistical_y_to_x(bam, bam_x, bam_y, max_bits=N, trials=5000)   
 
 if __name__ == "__main__":
     main()

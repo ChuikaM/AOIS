@@ -83,7 +83,6 @@ def print_statistical_table(
     table.add_column("Визуализация", justify="left", width=35)
 
     for noise_level in noise_levels:
-        total_trials = 0
         successful_trials = 0
         
         for vector in source_vectors:
@@ -97,11 +96,10 @@ def print_statistical_table(
                 else:
                     result, _ = network.predict(noisy_vec)
                 
-                total_trials += 1
                 if result == vector:
                     successful_trials += 1
         
-        success_rate = (successful_trials / total_trials * 100) if total_trials > 0 else 0
+        success_rate = (successful_trials / (trials_per_level * len(source_vectors))) * 100
         
         bar = create_success_bar(success_rate, width=30)
         table.add_row(
@@ -111,7 +109,7 @@ def print_statistical_table(
         )
 
     console.print(table)
-    console.print(f"[dim]Статистика: {trials_per_level} испытаний × {total_vectors} векторов = {total_trials} тестов на уровень шума[/dim]\n")
+    console.print(f"[dim]Статистика: {trials_per_level} испытаний × {total_vectors}  тестов на уровень шума[/dim]\n")
 
 
 def print_dominance_table_statistical(network, source_vectors, max_noise=20, trials=50):
