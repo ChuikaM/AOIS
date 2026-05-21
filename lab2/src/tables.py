@@ -15,7 +15,7 @@ def fmt_rec(original, recovered):
     txt = Text()
     for i in range(len(recovered)):
         bit = str(recovered[i])
-        # Подсветка несовпадений
+       
         style = "bold red on yellow" if recovered[i] != original[i] else "green"
         txt.append(bit, style=style)
         if i < len(recovered) - 1:
