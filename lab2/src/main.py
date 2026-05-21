@@ -3,11 +3,7 @@ from hopfield import HopfieldNetwork
 from hamming import HammingNetwork
 from bam import BAMNetwork
 from data import VECTORS_TABLE, fmt, test_max_bits, test_max_bits_bam
-from tables import (
-    print_dominance_table,
-    print_hamming_accuracy_table,
-    print_dominance_table_simple
-)
+from tables import *
 
 def main():
     np.random.seed(42)
@@ -62,7 +58,8 @@ def main():
     print(f"   Sync:  {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_sync))}")
 
     noisy_positions_list = [list(range(20)) for _ in hop_patterns]
-    print_dominance_table(hop, hop_patterns, noisy_positions_list)
+    print_dominance_table_statistical(hop, hop_patterns, max_noise=20, trials=50)
+    print_dominance_table_sync_statistical(hop, hop_patterns, max_noise=20, trials=50)
 
     print("\n=== Сеть Хэмминга ===")
     print("1. Source vectors:")
@@ -87,7 +84,7 @@ def main():
     max_ham = test_max_bits(ham_patterns, lambda x: ham.predict(x)[0])
     print("\n".join(f"   y_{i+1}= {m}" for i, m in enumerate(max_ham)))
     
-    print_hamming_accuracy_table(ham)
+    print_hamming_accuracy_table_statistical(ham, max_noise=20, trials=50)
 
     print("\n=== Двунаправленная ассоциативная память (BAM) ===")
     print("1. Source vectors:")
@@ -121,7 +118,8 @@ def main():
     print("   X direction (Y->X recovery):")
     print("\n".join(f"   x_{i+1}= {m}" for i, m in enumerate(max_bam_y_to_x)))
     
-    print_dominance_table_simple(bam, bam_x, bam_y, max_bits=N)
+    print_bam_table_statistical_x_to_y(bam, bam_x, bam_y, max_bits=N, trials=50)
+    print_bam_table_statistical_y_to_x(bam, bam_x, bam_y, max_bits=N, trials=50)   
 
 if __name__ == "__main__":
     main()

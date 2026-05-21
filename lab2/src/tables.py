@@ -2,194 +2,211 @@ import numpy as np
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
+from rich.bar import Bar
+import random
 
-def flip_binary_bits(vec, positions):
-    noisy = vec.copy()
-    for pos in positions:
-        if pos < len(noisy):
-            noisy[pos] = 1 - noisy[pos]
-    return noisy
-
-def build_full_noise_order(positions):
-    return list(positions)
-
-def recognition_result_for_mode(network, vector, noise_positions, mode="async"):
-    noisy = flip_binary_bits(vector, noise_positions)
-    if mode == "async":
-        result, _ = network.predict_async(noisy, max_cycles=10)
-    else:
-        result, _ = network.predict_sync(noisy)
-    indices = [i for i, (a, b) in enumerate(zip(result, vector)) if a == b]
-    threshold = 0.5
-    return len(indices) / len(vector) > threshold
+from rich.text import Text
 
 def fmt_orig(vec):
     return Text(" ".join(map(str, vec)), style="dim cyan")
+
 
 def fmt_rec(original, recovered):
     txt = Text()
     for i in range(len(recovered)):
         bit = str(recovered[i])
+        # Подсветка несовпадений
         style = "bold red on yellow" if recovered[i] != original[i] else "green"
         txt.append(bit, style=style)
         if i < len(recovered) - 1:
-            txt.append(" ")
+            txt.append(" ")  # пробел между битами
     return txt
 
-def print_dominance_table(network, source_vectors, noisy_positions):
+
+def create_success_bar(success_rate, width=30):
+    green_blocks = int(width * success_rate / 100)
+    red_blocks = width - green_blocks
+    if red_blocks == 0:
+        return Text("█" * width, style="green")
+    return Text("█" * green_blocks, style="green") + Text("░" * red_blocks, style="red")
+
+
+def flip_binary_bits_random(vec, noise_level, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()
+    noisy = vec.copy()
+    n_bits = min(noise_level, len(vec))
+    positions = rng.choice(len(vec), size=n_bits, replace=False)
+    for pos in positions:
+        noisy[pos] = 1 - noisy[pos]
+    return noisy
+
+
+
+def flip_binary_bits_random(vec, noise_level, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()
+    noisy = vec.copy()
+    positions = rng.choice(len(vec), size=min(noise_level, len(vec)), replace=False)
+    for pos in positions:
+        noisy[pos] = 1 - noisy[pos]
+    return noisy
+
+def create_success_bar(success_rate, width=30):
+    green_blocks = int(width * success_rate / 100)
+    red_blocks = width - green_blocks
+    bar_text = "█" * green_blocks + "░" * red_blocks
+    return Text(bar_text, style="green") if red_blocks == 0 else Text(
+        "█" * green_blocks, style="green"
+    ) + Text("░" * red_blocks, style="red")
+
+def print_statistical_table(
+    network, 
+    source_vectors, 
+    noise_levels, 
+    trials_per_level=50, 
+    mode="async",
+    network_name="Network"
+):
     if not source_vectors:
-        print("Таблица доминирования: нет данных для отображения\n")
+        print(f"Таблица {network_name}: нет данных для отображения\n")
         return
 
     console = Console()
     total_vectors = len(source_vectors)
     vector_size = len(source_vectors[0])
-    demo_idx = 0
+    rng = np.random.default_rng(42)  # для воспроизводимости
 
-    table = Table(title="Таблица доминирования (Hopfield)", show_lines=True)
-    table.add_column("N", justify="center", style="bold cyan", width=4)
-    table.add_column("Async %", justify="center", style="bold green", width=10)
-    table.add_column("Оригинал", justify="left", style="dim", width=45)
-    table.add_column("Восстановлен (Async)", justify="left", width=45)
-    table.add_column("Sync %", justify="center", style="bold green", width=8)
-    table.add_column("Оригинал", justify="left", style="dim", width=45)
-    table.add_column("Восстановлен (Sync)", justify="left", width=45)
+    table = Table(title=f"Статистика восстановления — {network_name}", show_lines=True)
+    table.add_column("Шум", justify="center", style="bold cyan", width=6)
+    table.add_column("Успех %", justify="center", style="bold green", width=10)
+    table.add_column("Визуализация", justify="left", width=35)
 
-    full_noise_orders = [build_full_noise_order(p) for p in noisy_positions]
-
-    for noise_level in range(1, vector_size + 1):
-        async_correct, sync_correct = 0, 0
-
-        for vector, full_order in zip(source_vectors, full_noise_orders):
-            current_noise = full_order[:noise_level]
-            noisy_vec = flip_binary_bits(vector, current_noise)
-
-            res_async, _ = network.predict_async(noisy_vec, max_cycles=10)
-            res_sync, _ = network.predict_sync(noisy_vec)
-
-            if res_async == vector: async_correct += 1
-            if res_sync == vector: sync_correct += 1
-
-        async_pct = (async_correct / total_vectors) * 100
-        sync_pct = (sync_correct / total_vectors) * 100
-
-        demo_vec = source_vectors[demo_idx]
-        demo_noise = full_noise_orders[demo_idx][:noise_level]
-        demo_noisy = flip_binary_bits(demo_vec, demo_noise)
-
-        rec_async, _ = network.predict_async(demo_noisy, max_cycles=10)
-        rec_sync, _ = network.predict_sync(demo_noisy)
-
+    for noise_level in noise_levels:
+        total_trials = 0
+        successful_trials = 0
+        
+        for vector in source_vectors:
+            for _ in range(trials_per_level):
+                noisy_vec = flip_binary_bits_random(vector, noise_level, rng)
+                
+                if mode == "async":
+                    result, _ = network.predict_async(noisy_vec, max_cycles=10)
+                elif mode == "sync":
+                    result, _ = network.predict_sync(noisy_vec)
+                else:
+                    result, _ = network.predict(noisy_vec)
+                
+                total_trials += 1
+                if result == vector:
+                    successful_trials += 1
+        
+        success_rate = (successful_trials / total_trials * 100) if total_trials > 0 else 0
+        
+        bar = create_success_bar(success_rate, width=30)
         table.add_row(
             str(noise_level),
-            f"{async_pct:.1f}%",
-            fmt_orig(demo_vec),
-            fmt_rec(demo_vec, rec_async),
-            f"{sync_pct:.1f}%",
-            fmt_orig(demo_vec),
-            fmt_rec(demo_vec, rec_sync)
+            f"{success_rate:.1f}%",
+            bar
         )
 
     console.print(table)
-    console.print(f"[dim]Всего векторов: {total_vectors} | Размер: {vector_size} бит[/dim]\n")
+    console.print(f"[dim]Статистика: {trials_per_level} испытаний × {total_vectors} векторов = {total_trials} тестов на уровень шума[/dim]\n")
 
 
-def print_hamming_accuracy_table(network):
+def print_dominance_table_statistical(network, source_vectors, max_noise=20, trials=50):
+    print_statistical_table(
+        network, source_vectors, range(1, max_noise+1), 
+        trials_per_level=trials, mode="async", network_name="Hopfield (Async)"
+    )
+
+
+def print_dominance_table_sync_statistical(network, source_vectors, max_noise=20, trials=50):
+    print_statistical_table(
+        network, source_vectors, range(1, max_noise+1), 
+        trials_per_level=trials, mode="sync", network_name="Hopfield (Sync)"
+    )
+
+
+def print_hamming_accuracy_table_statistical(network, max_noise=20, trials=50):
     if not network.source_vectors:
-        print("Таблица распознавания сети Хэмминга: нет данных для отображения\n")
+        print("Таблица Хэмминга: нет данных для отображения\n")
         return
-
-    console = Console()
-    total_vectors = len(network.source_vectors)
-    vector_size = network.input_size
-    demo_idx = 0
-
-    table = Table(title="Таблица распознавания сети Хэмминга", show_lines=True)
-    table.add_column("N", justify="center", style="bold cyan", width=4)
-    table.add_column("Точность %", justify="center", style="bold green", width=10)
-    table.add_column("Оригинал", justify="left", style="dim", width=45)
-    table.add_column("Восстановлен", justify="left", width=45)
-
-    for noisy_bits_count in range(1, vector_size + 1):
-        correct_recognitions = 0
-        noisy_positions = list(range(noisy_bits_count))
-
-        for vector_index, original_vector in enumerate(network.source_vectors):
-            noisy_vector = flip_binary_bits(original_vector, noisy_positions)
-            result_vec, _ = network.predict(noisy_vector)
-            if result_vec == original_vector:
-                correct_recognitions += 1
-
-        accuracy_pct = (correct_recognitions / total_vectors) * 100
-
-        demo_orig = network.source_vectors[demo_idx]
-        demo_noisy = flip_binary_bits(demo_orig, noisy_positions)
-        demo_recovered, _ = network.predict(demo_noisy)
-
-        table.add_row(
-            str(noisy_bits_count),
-            f"{accuracy_pct:.1f}%",
-            fmt_orig(demo_orig),
-            fmt_rec(demo_orig, demo_recovered)
-        )
-
-    console.print(table)
-    console.print(f"[dim]Всего векторов: {total_vectors} | Размер: {vector_size} бит[/dim]\n")
+    print_statistical_table(
+        network, network.source_vectors, range(1, max_noise+1), 
+        trials_per_level=trials, mode="default", network_name="Hamming Network"
+    )
 
 
-def print_dominance_table_simple(bam_net, source_x, source_y, max_bits=None):
+def print_bam_table_statistical_x_to_y(bam_net, source_x, source_y, max_bits=13, trials=50):
     if not source_x or not source_y:
-        print("Таблица доминирования BAM: нет данных для отображения\n")
+        print("Таблица BAM: нет данных для отображения\n")
         return
 
     console = Console()
     total_vectors = len(source_x)
-    limit = max_bits or len(source_x[0])
+    rng = np.random.default_rng(42)
 
-    table = Table(title="Таблица доминирования BAM", show_lines=True)
-    table.add_column("N", justify="center", style="bold cyan", width=4)
-    table.add_column("X→Y %", justify="center", style="bold green", width=8)
-    table.add_column("Оригинал (Y)", justify="left", style="dim", width=30)
-    table.add_column("Восстановлен (Y)", justify="left", width=30)
-    table.add_column("Y→X %", justify="center", style="bold green", width=8)
-    table.add_column("Оригинал (X)", justify="left", style="dim", width=30)
-    table.add_column("Восстановлен (X)", justify="left", width=30)
+    table = Table(title="Статистика восстановления BAM (X→Y)", show_lines=True)
+    table.add_column("Шум", justify="center", style="bold cyan", width=6)
+    table.add_column("Успех %", justify="center", style="bold green", width=10)
+    table.add_column("Визуализация", justify="left", width=35)
 
-    for n in range(1, limit + 1):
-        x_ok, y_ok = 0, 0
-        x_results = []
-        y_results = []
-
-        for idx in range(total_vectors):
-            nx = source_x[idx].copy()
-            for k in range(n):
-                if k < len(nx): nx[k] = 1 - nx[k]
-            _, ry = bam_net.recall_from_x(nx)
-            x_correct = (ry == source_y[idx])
-            if x_correct: x_ok += 1
-            x_results.append((source_y[idx], ry, x_correct))
-
-            ny = source_y[idx].copy()
-            for k in range(n):
-                if k < len(ny): ny[k] = 1 - ny[k]
-            rx, _ = bam_net.recall_from_y(ny)
-            y_correct = (rx == source_x[idx])
-            if y_correct: y_ok += 1
-            y_results.append((source_x[idx], rx, y_correct))
-
-        x_pct = (x_ok / total_vectors) * 100
-        y_pct = (y_ok / total_vectors) * 100
-
-        demo_x_idx = next((i for i, (_, _, correct) in enumerate(x_results) if not correct), 0)
-        demo_y_idx = next((i for i, (_, _, correct) in enumerate(y_results) if not correct), 0)
-
-        orig_y, rec_y, _ = x_results[demo_x_idx]
-        orig_x, rec_x, _ = y_results[demo_y_idx]
-
-        table.add_row(
-            str(n), f"{x_pct:.1f}%", fmt_orig(orig_y), fmt_rec(orig_y, rec_y),
-            f"{y_pct:.1f}%", fmt_orig(orig_x), fmt_rec(orig_x, rec_x)
-        )
+    for noise_level in range(1, max_bits + 1):
+        total_trials = 0
+        successful_trials = 0
+        
+        for x_vec, y_true in zip(source_x, source_y):
+            for _ in range(trials):
+                noisy_x = flip_binary_bits_random(x_vec, noise_level, rng)
+                _, y_rec = bam_net.recall_from_x(noisy_x)
+                total_trials += 1
+                if y_rec == y_true:
+                    successful_trials += 1
+        
+        success_rate = (successful_trials / total_trials * 100) if total_trials > 0 else 0
+        bar = create_success_bar(success_rate, width=30)
+        
+        table.add_row(str(noise_level), f"{success_rate:.1f}%", bar)
 
     console.print(table)
-    console.print(f"[dim]Всего векторов: {total_vectors} | Размер: {limit} бит[/dim]\n")
+    console.print(f"[dim]BAM статистика: {trials} испытаний × {total_vectors} пар = {total_trials} тестов/уровень[/dim]\n")
+
+
+def print_bam_table_statistical_y_to_x(bam_net, source_x, source_y, max_bits=None, trials=50):
+    """Статистическая таблица для BAM (направление Y→X)"""
+    if not source_x or not source_y:
+        print("Таблица BAM (Y→X): нет данных для отображения\n")
+        return
+
+    console = Console()
+    total_vectors = len(source_x)
+    rng = np.random.default_rng(42)
+
+    # Если max_bits не указан, берём длину Y-вектора (шум накладывается на Y)
+    limit = max_bits if max_bits is not None else len(source_y[0])
+
+    table = Table(title="Статистика восстановления BAM (Y→X)", show_lines=True)
+    table.add_column("Шум", justify="center", style="bold cyan", width=6)
+    table.add_column("Успех %", justify="center", style="bold green", width=10)
+    table.add_column("Визуализация", justify="left", width=35)
+
+    for noise_level in range(1, limit + 1):
+        total_trials = 0
+        successful_trials = 0
+        
+        for x_true, y_vec in zip(source_x, source_y):
+            for _ in range(trials):
+                noisy_y = flip_binary_bits_random(y_vec, noise_level, rng)
+                x_rec, _ = bam_net.recall_from_y(noisy_y)
+                total_trials += 1
+                if x_rec == x_true:
+                    successful_trials += 1
+        
+        success_rate = (successful_trials / total_trials * 100) if total_trials > 0 else 0
+        bar = create_success_bar(success_rate, width=30)
+        
+        table.add_row(str(noise_level), f"{success_rate:.1f}%", bar)
+
+    console.print(table)
+    console.print(f"[dim]BAM статистика (Y→X): {trials} испытаний × {total_vectors} пар = {total_trials} тестов/уровень[/dim]\n")
