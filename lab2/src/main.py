@@ -57,7 +57,6 @@ def main():
     print(f"   Async: {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_async))}")
     print(f"   Sync:  {', '.join(f'y_{i+1}= {m}' for i, m in enumerate(max_sync))}")
 
-    noisy_positions_list = [list(range(20)) for _ in hop_patterns]
     print_dominance_table_statistical(hop, hop_patterns, max_noise=20, trials=50)
     print_dominance_table_sync_statistical(hop, hop_patterns, max_noise=20, trials=50)
 
